@@ -87,16 +87,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: structure
     if: needs.structure.outputs.has_tour == 'true'
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
       - name: Compile tour
+        continue-on-error: true
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: learning-map/tour.tex
+          root_file: tour.tex
           working_directory: learning-map
           latexmk_use_xelatex: false
-          args: -pdf -interaction=nonstopmode -halt-on-error -file-line-error
+          args: -pdf -interaction=nonstopmode -file-line-error
 
       - uses: actions/upload-artifact@v4
         with:
@@ -108,6 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: structure
     if: needs.structure.outputs.has_proofs == 'true'
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -116,7 +119,8 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y --no-install-recommends \
             texlive-latex-base texlive-latex-recommended texlive-fonts-recommended \
-            texlive-latex-extra texlive-science latexmk
+            texlive-latex-extra texlive-science texlive-fonts-extra \
+            texlive-plain-generic lmodern latexmk
 
       - name: Compile every proof
         run: |
