@@ -178,6 +178,8 @@ As $\tau\to\infty$ (convex $F_k$) each client reaches its own $w_k^\star=\arg\mi
 
 *(The $\Delta$ formula and the composite-map non-commutativity are this note's reconstruction; the paper argues the point only qualitatively + empirically.)*
 
+> **Remark 3.1 (the heuristic $\Delta$ is a theorem — with a corrected prefactor).** The two-step Taylor sketch above is *heuristic*: it freezes the local learning rate at $\eta$ and stops at $\tau=2$. An effective-ODE / averaging-theory argument makes it rigorous. Idealize client $k$'s $u_k$ local full-batch steps as the gradient flow $\Phi_k^T$ of $F_k$ run for physical time $T=\eta u_k$; then the FedAvg server map $\mathcal S^T=\sum_k\beta_k\Phi_k^T$ drifts from the centralized flow $\Phi_f^T$ by exactly $\|\mathcal S^T(w)-\Phi_f^T(w)\|=\tfrac{T^2}{2}\|\mathrm{Cov}_k(H_k,g_k)\|+O(T^3)$, with leading direction $\mathrm{Cov}_k(H_k,g_k)/\|\cdot\|$. This recovers (3.5)'s object $\mathrm{Cov}_k(H_k,g_k)$ exactly (the $E{=}2,B{=}\infty$, i.e. $T{=}2\eta$, special case) but **corrects its prefactor**: the right magnitude is $T^2/2=(\eta u_k)^2/2$, not the frozen $\eta^2$, so the heuristic underpredicts by a factor $u_k^2/4$ (e.g. $\approx 6\times$ at $E{=}5$). The single invariant is $T=\eta E n_k/B$. See [`05-improvements.tex` §T.3](05-improvements.tex) and the full proof in [`proofs/effective-ode-averaging-bound.tex`](proofs/effective-ode-averaging-bound.tex) (numerically confirmed: drift $\propto T^{2.06}$, direction cosine $0.9999$).
+
 ---
 
 ## §4. Local-update count $u_k=En_k/B$ and the $(C,E,B)$ family

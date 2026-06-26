@@ -13,7 +13,10 @@ Each file implements one proposal and prints a **baseline-vs-proposed comparison
 | `heterogeneity-control-variate.py` | §M.1 (Mathematical) | SCAFFOLD-lite control variates → **1.62× fewer** non-IID rounds than vanilla FedAvg |
 | `unbiased-aggregation.py` | §M.2 (Mathematical) | Horvitz–Thompson / size-prop sampling cut aggregation bias **1.6e-1 → 2e-3** under imbalance |
 | `adaptive-local-work.py` | §E.1 (Experimental) | Decaying `E` (40→1) beats **every** fixed `E`; reproduces the large-`E` plateau |
+| `horizon-equalized-local-flow.py` | §E.3 (Experimental) | Per-client `η_k=T*/u_k` (equal flow-time) → fewer non-IID rounds as imbalance grows (**+0 → +2.2** rounds), a clean **no-op when balanced** |
 | `permutation-aligned-averaging.py` | §T.1 (Theoretical) | Git-Re-Basin weight-matching turns the Fig-1 barrier **+0.024 → −0.023** |
+
+The two theoretical proposals are validated by standalone proofs rather than prototypes: `../proofs/permutation-aligned-averaging.tex` (§T.1) and `../proofs/effective-ode-averaging-bound.tex` (§T.3 — the per-round drift is exactly `(T²/2)‖Cov_k(H_k,g_k)‖ + O(T³)`, confirmed numerically: log-log slope 2.06, drift-direction cosine 0.9999).
 
 ## Run
 
@@ -22,6 +25,7 @@ Each file implements one proposal and prints a **baseline-vs-proposed comparison
 .venv/bin/python improvements/heterogeneity-control-variate.py
 .venv/bin/python improvements/unbiased-aggregation.py
 .venv/bin/python improvements/adaptive-local-work.py
+.venv/bin/python improvements/horizon-equalized-local-flow.py
 .venv/bin/python improvements/permutation-aligned-averaging.py
 ```
 

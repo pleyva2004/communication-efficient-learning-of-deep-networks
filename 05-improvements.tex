@@ -32,7 +32,7 @@
 \maketitle
 
 \begin{abstract}
-FedAvg \citep{mcmahan2017fedavg} is justified entirely empirically: it proves no convergence result, leaves the $E>1$ regime uncharacterized, relies on a shared per-round initialization whose necessity it only illustrates, and ships an erratum-corrected aggregation rule whose statistical properties it never analyzes. We propose four concrete improvements that each attack one of these gaps, and back every one with a runnable prototype under \texttt{improvements/}. Two are \emph{mathematical}: cancelling the client-heterogeneity drift term that this study derived as the leading $E>1$ deviation from centralized gradient descent, and restoring exact unbiasedness to the aggregation step under client imbalance. One is \emph{experimental}: scheduling the per-round local work like a learning rate to dodge the large-$E$ plateau. One is \emph{theoretical}: importing permutation weight-matching so averaging works \emph{without} a shared initialization. Each prototype reproduces its claimed effect on the study's toy harness in under a minute on CPU.
+FedAvg \citep{mcmahan2017fedavg} is justified entirely empirically: it proves no convergence result, leaves the $E>1$ regime uncharacterized, relies on a shared per-round initialization whose necessity it only illustrates, and ships an erratum-corrected aggregation rule whose statistical properties it never analyzes. We propose six concrete improvements that each attack one of these gaps, and back every one with a runnable prototype under \texttt{improvements/} or a standalone proof under \texttt{proofs/}. Two are \emph{mathematical}: cancelling the client-heterogeneity drift term that this study derived as the leading $E>1$ deviation from centralized gradient descent, and restoring exact unbiasedness to the aggregation step under client imbalance. One is \emph{experimental}: scheduling the per-round local work like a learning rate to dodge the large-$E$ plateau. One is \emph{theoretical}: importing permutation weight-matching so averaging works \emph{without} a shared initialization. Two further proposals take a \emph{continuous-time} view of the same $E>1$ drift: a rigorous \emph{effective-ODE} bound (\S T.3) that replaces this study's \emph{heuristic} $\Delta$ with the exact second-order law $\tfrac{T^2}{2}\lVert\mathrm{Cov}_k(H_k,g_k)\rVert$, and its actionable corollary (\S E.3), \emph{horizon-equalized} local work, which cancels a previously-unnamed size-imbalance drift $-\mathrm{Cov}_k(T_k,g_k)$ at zero communication cost. These last two are the only proposals that additionally survived an independent adversarial re-derivation and re-run unchanged. Each prototype reproduces its claimed effect on the study's toy harness in under a minute on CPU.
 \end{abstract}
 
 \section*{Mathematical Improvements}
@@ -95,7 +95,9 @@ Rather than a single refactor, the practical contribution here is a set of four 
 improvements/heterogeneity-control-variate.py  -> M.1  (1.62x fewer non-IID rounds)
 improvements/unbiased-aggregation.py           -> M.2  (bias 1.6e-1 -> 2e-3)
 improvements/adaptive-local-work.py            -> E.1  (decayed-E beats every fixed E)
+improvements/horizon-equalized-local-flow.py   -> E.3  (+0->+2.2 rounds as imbalance grows; no-op when balanced)
 improvements/permutation-aligned-averaging.py  -> T.1  (barrier +0.024 -> -0.023)
+proofs/effective-ode-averaging-bound.tex       -> T.3  (drift = (T^2/2)||Cov_k(H_k,g_k)|| + O(T^3), exact to O(T^2))
 \end{lstlisting}
 
 \section*{Experimental Extensions}
@@ -121,6 +123,28 @@ best fixed E = 10 (40.50%);  decayed E (41.55%) beats it;  centralized ceiling =
 The entire compute-for-communication thesis rests on the unquantified assertion that on-device computation is ``essentially free compared to communication.'' We propose the control the paper omits: instrument the clients to log wall-clock time, energy (via on-device power counters), and FLOPs per local update, and report a \emph{rounds-versus-total-on-device-compute} Pareto frontier rather than rounds alone. The prediction is that the high-$u$ configurations (e.g.\ $E{=}20,B{=}10$, $u_k$ up to $1200$ local updates/round) that look best on the rounds axis are dominated on the compute axis, revealing a genuine knee rather than ``more local work is always better.''
 % TODO prototype needs on-device power/FLOP instrumentation
 
+\subsection*{E.3 Horizon-equalized local computation: hold $\eta E n_k/B$ invariant across clients}
+
+One step of local SGD $w\leftarrow w-\eta\,\nabla F_k(w)$ is one forward-Euler step of the gradient flow $\dot w=-\nabla F_k(w)$, so a round of $u_k=En_k/B$ local steps integrates client $k$'s flow for physical time $T_k=\eta\,u_k=\eta E n_k/B$. Vanilla FedAvg fixes $(E,B,\eta)$ globally, so under client-size imbalance $T_k$ \emph{varies}: the server averages models that each flowed a different amount of time toward their own local optimum. The effective-ODE analysis of \S T.3 (its unequal-horizon remark) shows this injects a \emph{first-order} drift $-\mathrm{Cov}_k(T_k,g_k)$ into the aggregate---a pure \emph{size-heterogeneity} term, distinct from the curvature drift and present even when the $F_k$ are identically shaped. We propose to cancel it by giving each client a per-round learning rate $\eta_k=T^\star/u_k$ so that $T_k\equiv T^\star$ for all $k$, with $T^\star=\eta E\bar n/B$ (the horizon of an average-size client under the baseline LR) so the \emph{total} integration time is unchanged on average---only its distribution across clients is equalized. There is no extra communication and no client state.
+
+\begin{equation}
+\eta_k=\frac{T^\star}{u_k}=\frac{T^\star B}{E\,n_k},\qquad
+T^\star=\frac{\eta E\,\bar n}{B}\qquad\Longrightarrow\qquad
+T_k=\eta_k u_k\equiv T^\star\ \ \forall k.
+\end{equation}
+On the study's pathological non-IID harness with log-uniform client sizes (mean over $12$ partition realizations; both arms share the partition \emph{and} client-sampling seed, differing \emph{only} in $\eta_k$), it is a clean no-op when balanced and reduces mean rounds-to-target monotonically as imbalance grows (\texttt{improvements/horizon-equalized-local-flow.py}):
+
+\begin{lstlisting}
+Rounds to 95% test acc, pathological NON-IID with imbalanced (log-uniform) sizes
+ spread~  n_min  n_max | BASE rnds  PROP rnds  mean dlt    W/L/T   faster?
+    1.0     60     60  |     9.75      9.75      0.00   0/0/12      tie   (no-op)
+    4.9     23    127  |    11.83     11.17     +0.67    3/0/9  PROPOSED
+   19.1      9    213  |    15.17     14.42     +0.75    5/1/6  PROPOSED
+   66.8      4    320  |    18.33     16.17     +2.17    6/0/6  PROPOSED
+(P1) balanced no-op: OK  (P2) faster on every imbalanced spread: OK  (P3) margin widens: OK
+VERDICT: PASS -- no-op when balanced; fewer mean rounds under imbalance, margin widens monotonically.
+\end{lstlisting}
+
 \section*{Theoretical / Conceptual Connections}
 
 \subsection*{T.1 Permutation-aligned averaging (Git Re-Basin for federated learning)}
@@ -144,9 +168,18 @@ VERDICT: PASS -- alignment eliminates the barrier.
 FedAvg's premise is that per-round \emph{communication} dominates per-round \emph{computation}. For a modern $B$-parameter model that premise is strained: a full model upload is $\Theta(B)$ per client per round. We propose composing FedAvg with low-rank adaptation: freeze the base model (shared once), and run FedAvg \emph{only over LoRA adapters}, so per-round communication drops from $\Theta(B)$ to $\Theta(\text{rank}\times\text{dim})$---in the study's sandbox, $4.3\%$ of parameters. This is the natural modern realization of the communication-reduction program of \citet{konecny2016strategies}, and it makes the compute-for-communication trade strictly more favorable the larger the base model. The sandbox script \texttt{sandbox/real\_fedlora.py} already demonstrates the mechanism (FedAvg over adapters drives loss down while communicating only the adapter); the open theoretical question is whether the heterogeneity drift of M.1 is \emph{amplified} or \emph{damped} in the low-rank subspace, which would determine whether control variates are more or less necessary for federated LoRA. Secure aggregation \citep{bonawitz2017secure} composes cleanly because only the small adapter is aggregated.
 % TODO prototype: full federated-LoRA drift study needs a real base model + GPU host
 
+\subsection*{T.3 An effective-ODE drift bound: a closed form for the heuristic $\Delta$}
+
+The math deep dive derived FedAvg's $E>1$ per-round drift \emph{heuristically} as $\Delta=\eta^2\,\mathrm{Cov}_k(H_k,g_k)$ from a two-step Taylor sketch. We make it exact. Idealize each client's $u_k$ local full-batch steps as the gradient flow $\Phi_k^{T}$ of $F_k$ run for time $T=\eta u_k$, and let $\mathcal S^{T}=\sum_k\beta_k\Phi_k^{T}$ be the FedAvg server map. A Lie--Taylor expansion (full proof in \texttt{proofs/effective-ode-averaging-bound.tex}) gives, for clients sharing a horizon $T$,
+\begin{equation}
+\big\lVert \mathcal S^{T}(w)-\Phi_f^{T}(w)\big\rVert=\frac{T^2}{2}\,\sigma_{HG}+O(T^3),
+\qquad \sigma_{HG}=\big\lVert\mathrm{Cov}_k(H_k,g_k)\big\rVert,
+\end{equation}
+with an explicit cubic remainder under bounded third derivatives, and leading drift direction exactly $\mathrm{Cov}_k(H_k,g_k)/\sigma_{HG}$. This recovers the deep dive's $\Delta$ as the $E=2,B=\infty$ ($T=2\eta$) special case but \emph{corrects the prefactor}: the right magnitude is $T^2/2=(\eta u_k)^2/2$, not the frozen $\eta^2$ (the heuristic underpredicts by $u_k^2/4$, e.g.\ $\approx6\times$ at $E=5$). The single invariant is $T=\eta E n_k/B$---so $(E,B,\eta)$ enter only through their product, which is precisely the lever \S E.3 exploits. A pure-numpy harness confirms the law: measured drift scales as $T^{2.06}$ (log--log slope vs predicted $2$), the ratio $D_t/\text{pred}\to1.05$ as $T\to0$, the drift direction matches $\mathrm{Cov}_k(H_k,g_k)$ to cosine $0.9999$, and at fixed $T$ the drift is $E$-independent (gap $<5\%$ between $E{=}25$ and $E{=}100$)---exactly the discretization-invariance the bound predicts. Per the skill's proof-vs-measurement rule this theoretical proposal ships a standalone proof rather than a separate prototype.
+
 \section*{Closing}
 
-Of the four, the highest-leverage proposal is \textbf{M.1 (control variates)}: it operationalizes the single most consequential finding of the math deep dive---that the $E>1$ ``free lunch'' is exactly a client-heterogeneity covariance $\eta^2\mathrm{Cov}_k(H_k,g_k)$---turns it into a drift cancellation that the prototype confirms recovers $1.62\times$ communication efficiency under non-IID data, and connects directly to the dominant follow-up line (SCAFFOLD, FedProx). It is also the proposal most likely to compose with the others (it is orthogonal to the aggregation fix of M.2, the schedule of E.1, and the alignment of T.1).
+Of the six, the highest-leverage proposal is \textbf{M.1 (control variates)}: it operationalizes the single most consequential finding of the math deep dive---that the $E>1$ ``free lunch'' is exactly a client-heterogeneity covariance $\eta^2\mathrm{Cov}_k(H_k,g_k)$---turns it into a drift cancellation that the prototype confirms recovers $1.62\times$ communication efficiency under non-IID data, and connects directly to the dominant follow-up line (SCAFFOLD, FedProx). It is also the proposal most likely to compose with the others (it is orthogonal to the aggregation fix of M.2, the schedule of E.1, the alignment of T.1, and the horizon equalization of E.3). The two continuous-time proposals are the most \emph{trustworthy}: \textbf{T.3} is the only result here proved as a theorem rather than illustrated (it turns the deep dive's heuristic $\Delta$ into the exact law $\tfrac{T^2}{2}\lVert\mathrm{Cov}_k(H_k,g_k)\rVert$, fixing its prefactor), and \textbf{E.3} is its cleanest empirical payoff (a free, server-side learning-rate rule whose advantage grows monotonically with client imbalance and is never net-negative)---both survived an independent adversarial re-derivation and re-run without change.
 % TODO author pick: record which proposal the user finds most personally promising once 03-opinions.md is filled.
 
 \bibliographystyle{plainnat}

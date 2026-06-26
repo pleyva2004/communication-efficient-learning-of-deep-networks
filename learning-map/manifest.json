@@ -305,6 +305,35 @@
       ],
       "summary": "Run FedAvg over LoRA adapters only: per-round communication drops from Theta(B) to Theta(rank*dim) (4.3% in the sandbox). Design proposal (T.2); link-only.",
       "validation": "link-only"
+    },
+    {
+      "id": "I07",
+      "graph": "improvements",
+      "slug": "effective-ode-averaging-bound",
+      "title": "Effective-ODE Averaging Bound",
+      "prereqs": [
+        "P08",
+        "P07",
+        "F07",
+        "F08",
+        "F09"
+      ],
+      "summary": "Idealizing each client's u_k local steps as the gradient flow of F_k for time T=eta*u_k makes the server-vs-centralized drift exactly (T^2/2)||Cov_k(H_k,g_k)||+O(T^3): turns the deep dive's heuristic eta^2 Cov_k(H_k,g_k) into a theorem and corrects its prefactor (heuristic underpredicts by u_k^2/4, ~6x at E=5); single invariant T=eta*E*n_k/B. Validation: proofs/effective-ode-averaging-bound.tex.",
+      "validation": "proofs/effective-ode-averaging-bound.tex"
+    },
+    {
+      "id": "I08",
+      "graph": "improvements",
+      "slug": "horizon-equalized-local-flow",
+      "title": "Horizon-Equalized Local Flow",
+      "prereqs": [
+        "P07",
+        "P08",
+        "F06",
+        "F09"
+      ],
+      "summary": "A round of local SGD integrates client k's gradient flow for time T_k=eta*E*n_k/B; under size imbalance vanilla FedAvg lets T_k vary, injecting a first-order drift -Cov_k(T_k,g_k). Fix: per-client eta_k=T*/u_k so T_k=T* for all clients (no extra comms/state). Prototype: no-op when balanced, +0->+2.2 mean rounds as imbalance grows. Validation: improvements/horizon-equalized-local-flow.py measure().",
+      "validation": "improvements/horizon-equalized-local-flow.py::measure"
     }
   ]
 }

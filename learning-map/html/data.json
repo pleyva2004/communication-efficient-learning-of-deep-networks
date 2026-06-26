@@ -237,6 +237,20 @@
       "graph": "improvements",
       "page": "improvements/concepts/06-federated-lora-communication.md",
       "summary": "Run FedAvg over LoRA adapters only: per-round communication drops from Theta(B) to Theta(rank*dim) (4.3% in the sandbox). Design proposal (T.2); link-only."
+    },
+    {
+      "id": "I07",
+      "label": "Effective-ODE Averaging Bound",
+      "graph": "improvements",
+      "page": "improvements/concepts/07-effective-ode-averaging-bound.md",
+      "summary": "Idealizing each client's u_k local steps as the gradient flow of F_k for time T=eta*u_k makes the server-vs-centralized drift exactly (T^2/2)||Cov_k(H_k,g_k)||+O(T^3): turns the deep dive's heuristic eta^2 Cov_k(H_k,g_k) into a theorem and corrects its prefactor (heuristic underpredicts by u_k^2/4, ~6x at E=5); single invariant T=eta*E*n_k/B. Validation: proofs/effective-ode-averaging-bound.tex."
+    },
+    {
+      "id": "I08",
+      "label": "Horizon-Equalized Local Flow",
+      "graph": "improvements",
+      "page": "improvements/concepts/08-horizon-equalized-local-flow.md",
+      "summary": "A round of local SGD integrates client k's gradient flow for time T_k=eta*E*n_k/B; under size imbalance vanilla FedAvg lets T_k vary, injecting a first-order drift -Cov_k(T_k,g_k). Fix: per-client eta_k=T*/u_k so T_k=T* for all clients (no extra comms/state). Prototype: no-op when balanced, +0->+2.2 mean rounds as imbalance grows. Validation: improvements/horizon-equalized-local-flow.py measure()."
     }
   ],
   "links": [
@@ -399,6 +413,42 @@
     {
       "source": "F16",
       "target": "I06"
+    },
+    {
+      "source": "P08",
+      "target": "I07"
+    },
+    {
+      "source": "P07",
+      "target": "I07"
+    },
+    {
+      "source": "F07",
+      "target": "I07"
+    },
+    {
+      "source": "F08",
+      "target": "I07"
+    },
+    {
+      "source": "F09",
+      "target": "I07"
+    },
+    {
+      "source": "P07",
+      "target": "I08"
+    },
+    {
+      "source": "P08",
+      "target": "I08"
+    },
+    {
+      "source": "F06",
+      "target": "I08"
+    },
+    {
+      "source": "F09",
+      "target": "I08"
     }
   ]
 }

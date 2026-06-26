@@ -26,9 +26,9 @@ Generated with the `study-paper` Claude Code skill.
 | [`02-math-deep-dive.md`](./02-math-deep-dive.md) | Mathematician-grade walk-through: 22 numbered equations across 7 derivations, load-bearing assumptions, gaps flagged. Notation key prelude links the [math-foundations glossary](https://github.com/pleyva2004/math-foundations/blob/main/NOTATION.md) |
 | [`03-opinions.md`](./03-opinions.md) | Opinion-capture template (filled in by hand, never by AI) |
 | [`04-literature-review.tex`](./04-literature-review.tex) + [`references.bib`](./references.bib) | Research-ready LaTeX literature-review entry, standalone-compilable, 18 citations |
-| [`05-improvements.tex`](./05-improvements.tex) | **Forward-looking proposals** — control variates, unbiased aggregation, adaptive local work, permutation-aligned averaging, federated LoRA |
-| [`improvements/`](./improvements/) | 4 runnable numpy prototypes for the proposals, each printing a baseline-vs-proposed comparison |
-| [`proofs/`](./proofs/) | 3 standalone, complete LaTeX proofs for the math/theoretical proposals (CI-rendered) |
+| [`05-improvements.tex`](./05-improvements.tex) | **Forward-looking proposals** — control variates, unbiased aggregation, adaptive local work, permutation-aligned averaging, federated LoRA, an effective-ODE drift bound, and horizon-equalized local work |
+| [`improvements/`](./improvements/) | 5 runnable numpy prototypes for the proposals, each printing a baseline-vs-proposed comparison |
+| [`proofs/`](./proofs/) | 4 standalone, complete LaTeX proofs for the math/theoretical proposals (CI-rendered) |
 | [`sandbox/`](./sandbox/) | Minimal experiments probing the paper's claims: numpy Level-1 + torch/MPS Level-2 (incl. the paper's exact 1,663,370-param CNN) + a federated-LoRA demo |
 | [`learning-map/`](./learning-map/) | Three-graph interactive learning map (paper + improvements + foundations links); every concept has a `.md` page, a runnable `.py` witness, a mermaid node, a notebook cell, and a D3 HTML node |
 | [`findings.md`](./findings.md) | Measured sandbox numbers per level |

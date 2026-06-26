@@ -10,6 +10,8 @@ flowchart TD
   I04["04 Compute-Accounting Pareto (design)"]
   I05["05 Permutation-Aligned Averaging (Git Re-Basin for FL)"]
   I06["06 Federated LoRA (design)"]
+  I07["07 Effective-ODE Averaging Bound"]
+  I08["08 Horizon-Equalized Local Flow"]
   P04["paper: FedSGD as Exact Gradient Descent"]
   P06["paper: FedAvg: Iterated Local Steps"]
   P07["paper: Local-Update Count u=nE/(KB)"]
@@ -22,6 +24,10 @@ flowchart TD
   F16["low rank factorization"]
   F12["permutation group"]
   F14["horvitz thompson estimator"]
+  F06["gradient descent"]
+  F07["taylor theorem"]
+  F08["hessian"]
+  F09["covariance"]
   P08 --> I01
   P06 --> I01
   F13 --> I01
@@ -37,12 +43,23 @@ flowchart TD
   P04 --> I06
   P06 --> I06
   F16 --> I06
+  P08 --> I07
+  P07 --> I07
+  F07 --> I07
+  F08 --> I07
+  F09 --> I07
+  P07 --> I08
+  P08 --> I08
+  F06 --> I08
+  F09 --> I08
   click I01 "concepts/01-control-variate-drift-correction.md"
   click I02 "concepts/02-unbiased-aggregation-estimators.md"
   click I03 "concepts/03-adaptive-local-work-schedule.md"
   click I04 "concepts/04-compute-accounting-pareto.md"
   click I05 "concepts/05-permutation-aligned-averaging.md"
   click I06 "concepts/06-federated-lora-communication.md"
+  click I07 "concepts/07-effective-ode-averaging-bound.md"
+  click I08 "concepts/08-horizon-equalized-local-flow.md"
   click P06 "../paper/concepts/06-fedavg-local-iteration.md"
   click P10 "../paper/concepts/10-aggregation-erratum.md"
   click P07 "../paper/concepts/07-local-update-count.md"
@@ -55,12 +72,16 @@ flowchart TD
   click F16 "https://github.com/pleyva2004/math-foundations/blob/main/concepts/low-rank-factorization.md"
   click F12 "https://github.com/pleyva2004/math-foundations/blob/main/concepts/permutation-group.md"
   click F14 "https://github.com/pleyva2004/math-foundations/blob/main/concepts/horvitz-thompson-estimator.md"
+  click F06 "https://github.com/pleyva2004/math-foundations/blob/main/concepts/gradient-descent.md"
+  click F07 "https://github.com/pleyva2004/math-foundations/blob/main/concepts/taylor-theorem.md"
+  click F08 "https://github.com/pleyva2004/math-foundations/blob/main/concepts/hessian.md"
+  click F09 "https://github.com/pleyva2004/math-foundations/blob/main/concepts/covariance.md"
   classDef imp fill:#ffe0b3,stroke:#ff9933;
   classDef paper fill:#cce5ff,stroke:#3399ff;
   classDef fnd fill:#e0e0e0,stroke:#888,color:#333;
-  class I01,I02,I03,I04,I05,I06 imp;
+  class I01,I02,I03,I04,I05,I06,I07,I08 imp;
   class P04,P06,P07,P08,P09,P10,P12 paper;
-  class F13,F15,F16,F12,F14 fnd;
+  class F13,F15,F16,F12,F14,F06,F07,F08,F09 fnd;
 ```
 
 Grey = foundations (click → shared repo). Each node links to its concept page; the aligned runnable witness is in `code/<NN>-<slug>.py`.

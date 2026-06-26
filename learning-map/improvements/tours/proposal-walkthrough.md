@@ -14,5 +14,9 @@ Each proposal, the paper gap it closes, and its validation file.
   Align client models modulo permutation before averaging to relax the shared-init requirement; prototype flips barrier +0.024 -> -0.023
 - **Federated LoRA (design)** — *link-only* — `design (T.2); see 05-improvements.tex`  
   Run FedAvg over LoRA adapters only: per-round communication drops from Theta(B) to Theta(rank*dim) (4.3% in the sandbox). Design proposal (T.2); link-only.
+- **Effective-ODE Averaging Bound** — *PROOF* — `proofs/effective-ode-averaging-bound.tex`  
+  Idealize each client's u_k local steps as the gradient flow of F_k for time T=eta*u_k: server-vs-centralized drift is EXACTLY (T^2/2)||Cov_k(H_k,g_k)||+O(T^3). Turns the deep dive's heuristic eta^2 Cov_k(H_k,g_k) into a theorem and corrects its prefactor (heuristic underpredicts by u_k^2/4, ~6x at E=5); single invariant T=eta*E*n_k/B
+- **Horizon-Equalized Local Flow** — *MEASUREMENT* — `improvements/horizon-equalized-local-flow.py → measure()`  
+  Per-client eta_k=T*/u_k equalizes the gradient-flow horizon T_k=eta*E*n_k/B across clients, cancelling the size-imbalance drift -Cov_k(T_k,g_k); no extra comms/state. Prototype: clean no-op when balanced, +0->+2.2 mean rounds as imbalance grows
 
 Validation modes: PROOF → standalone LaTeX in [`../../proofs/`](../../proofs/); MEASUREMENT → `measure()` in the matching [`../../improvements/`](../../improvements/) prototype; link-only → design proposal in [`../../05-improvements.tex`](../../05-improvements.tex).

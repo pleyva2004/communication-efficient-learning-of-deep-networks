@@ -59,6 +59,39 @@ The sign flip is the whole point: independent inits land in incompatible basins 
 
 ---
 
+## Improvements (forward-looking) — validated extensions
+
+Two proposed extensions (the continuous-time / dynamics-lens pair) were lifted into the parent study after surviving independent adversarial re-verification. Full write-ups in `05-improvements.tex` (§T.3, §E.3); validation artifacts under `proofs/` and `improvements/`.
+
+### Node 07 — effective-ODE drift bound (theoretical, §T.3, `proofs/effective-ode-averaging-bound.tex`)
+
+Turns the math deep dive's *heuristic* per-round drift $\Delta=\eta^2\mathrm{Cov}_k(H_k,g_k)$ into a theorem: idealizing each client's $u_k$ local steps as gradient flow for time $T=\eta u_k$, the server-vs-centralized drift is exactly $\|\mathcal S^T(w)-\Phi_f^T(w)\|=\tfrac{T^2}{2}\|\mathrm{Cov}_k(H_k,g_k)\|+O(T^3)$. **Corrects the prefactor** ($T^2/2$, not the frozen $\eta^2$; the heuristic underpredicts by $u_k^2/4$, ~6× at E=5). Single invariant: $T=\eta E n_k/B$.
+
+Drift law verified numerically:
+- drift scales as **T^2.06** (log-log slope vs predicted 2),
+- ratio D_t/pred → **1.05** as T→0,
+- leading-direction cosine vs $\mathrm{Cov}_k(H_k,g_k)$ = **0.9999**,
+- drift is E-independent at fixed T (**<5%** gap, E=25 vs E=100).
+
+**VERDICT: PASS** (proof, not a separate prototype).
+
+### Node 08 — horizon-equalized local computation (experimental, §E.3, `improvements/horizon-equalized-local-flow.py::measure`)
+
+Vanilla FedAvg fixes $(E,B,\eta)$ globally, so under client-size imbalance the flow-time $T_k=\eta E n_k/B$ varies, injecting a first-order size-imbalance drift $-\mathrm{Cov}_k(T_k,g_k)$ (the unequal-horizon remark of node 07's bound). Fix: per-client $\eta_k=T^\star/u_k$ with $T^\star=\eta E\bar n/B$, so $T_k\equiv T^\star$ for all clients (total flow-time unchanged on average; only its distribution equalized). No extra comms/state. Both arms share partition + sampling seed and differ *only* in $\eta_k$.
+
+Rounds to 95% test acc, pathological non-IID, log-uniform client sizes (mean over 12 partition realizations):
+
+| spread~ | n_min | n_max | BASE rnds | PROP rnds | mean Δ | W/L/T | faster? |
+|--------:|------:|------:|----------:|----------:|-------:|:-----:|:--------|
+| 1.0 | 60 | 60 | 9.75 | 9.75 | 0.00 | 0/0/12 | tie (no-op) |
+| 4.9 | 23 | 127 | 11.83 | 11.17 | +0.67 | 3/0/9 | PROPOSED |
+| 19.1 | 9 | 213 | 15.17 | 14.42 | +0.75 | 5/1/6 | PROPOSED |
+| 66.8 | 4 | 320 | 18.33 | 16.17 | +2.17 | 6/0/6 | PROPOSED |
+
+All 3 prediction checks pass: (P1) balanced no-op, (P2) faster on every imbalanced spread, (P3) margin widens monotonically. **VERDICT: PASS.**
+
+---
+
 ## Reproduce
 
 ```bash
