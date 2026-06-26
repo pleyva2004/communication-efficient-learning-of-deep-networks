@@ -15,7 +15,7 @@ Each proposal, the paper gap it closes, and its validation file.
 - **Federated LoRA (design)** — *link-only* — `design (T.2); see 05-improvements.tex`  
   Run FedAvg over LoRA adapters only: per-round communication drops from Theta(B) to Theta(rank*dim) (4.3% in the sandbox). Design proposal (T.2); link-only.
 - **Effective-ODE Averaging Bound** — *PROOF* — `proofs/effective-ode-averaging-bound.tex`  
-  Idealize each client's u_k local steps as the gradient flow of F_k for time T=eta*u_k: server-vs-centralized drift is EXACTLY (T^2/2)||Cov_k(H_k,g_k)||+O(T^3). Turns the deep dive's heuristic eta^2 Cov_k(H_k,g_k) into a theorem and corrects its prefactor (heuristic underpredicts by u_k^2/4, ~6x at E=5); single invariant T=eta*E*n_k/B
+  Idealize each client's u_k local steps as the gradient flow of F_k for time T=eta*u_k: server-vs-centralized drift is EXACTLY (T^2/2)||Cov_k(H_k,g_k)||+O(T^3). Turns the deep dive's heuristic eta^2 Cov_k(H_k,g_k) into a theorem and corrects its prefactor (vs the raw eta^2 the drift grows by u_k^2/2, ~12.5x at E=5; the factor 2 at E=2 is the 2-step Euler error); single invariant T=eta*E*n_k/B
 - **Horizon-Equalized Local Flow** — *MEASUREMENT* — `improvements/horizon-equalized-local-flow.py → measure()`  
   Per-client eta_k=T*/u_k equalizes the gradient-flow horizon T_k=eta*E*n_k/B across clients, cancelling the size-imbalance drift -Cov_k(T_k,g_k); no extra comms/state. Prototype: clean no-op when balanced, +0->+2.2 mean rounds as imbalance grows
 

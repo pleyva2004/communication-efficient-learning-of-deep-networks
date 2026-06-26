@@ -38,12 +38,9 @@ the leading discrepancy equal to a curvature--gradient covariance across clients
 \qquad
 \sigma_{HG}=\norm{\Cov_k(H_k,g_k)},
 \]
-with an explicit cubic remainder under a bounded-third-derivative assumption.
-This is exact for all local-step counts and shows the per-round drift depends on
-$(E,B,\eta)$ only through the single invariant $T=\eta E n_k/B$. The heuristic
-$\Delta=\eta^2\Cov_k(H_k,g_k)$ of the parent study's deep dive is recovered as
-the $E=2$, $B=\infty$ special case (where $T=2\eta$), with the correct prefactor
-$T^2/2$ replacing the frozen $\eta^2$.
+with an explicit cubic remainder ($C_3=\rho G^2+L^2G$) under a bounded-third-derivative assumption.
+The leading $\tfrac{T^2}{2}$ term is independent of how the horizon $T$ is split into local steps, so the per-round drift depends on $(E,B,\eta)$ only through the single invariant $T=\eta E n_k/B$ (the discrete FedAvg map matches the flow up to an $O(T/u_k)$ Euler error, Lemma~\ref{lem:euler}). The heuristic
+$\Delta=\eta^2\Cov_k(H_k,g_k)$ of the parent study's deep dive shares the \emph{same} drift object $\Gamma=\Cov_k(H_k,g_k)$; at $E=2$, $B=\infty$ ($T=2\eta$) the flow gives $2\eta^2\Gamma$, twice the discrete two-step heuristic's $\eta^2\Gamma$---the factor $2$ being exactly the Euler error of the $2$-step sketch---and the correct prefactor $T^2/2=(\eta u_k)^2/2$ grows as $u_k^2/2$ relative to the frozen $\eta^2$.
 \end{abstract}
 
 \section{Setup}
@@ -56,8 +53,15 @@ f=\sum_{k=1}^K\beta_k F_k .
 We write the gradient and Hessian at the broadcast point $w$ as
 $g_k=\grad F_k(w)$, $H_k=\grad^2 F_k(w)$, $g=\grad f(w)=\sum_k\beta_k g_k$,
 $H=\grad^2 f(w)=\sum_k\beta_k H_k$. (We treat $w\in\R^d$; the matrix-parameter
-softmax model of the prototype is the case $d=\dim$ with the Euclidean/Frobenius
-inner product, to which everything applies verbatim.)
+softmax model of the prototype is the vectorized case $w=\mathrm{vec}(W)$,
+$d=\dim W$, under the Frobenius inner product, to which everything applies
+verbatim.) Throughout, $\norm{\cdot}$ is the Euclidean norm on vectors and the
+induced (operator) norm on the matrix $\grad^2 F_k$ and the $3$-tensor
+$\grad^3 F_k$; these are compatible, so $\norm{Ax}\le\norm{A}\,\norm{x}$. For the
+matrix-valued $H_k$ and vector-valued $g_k$ we write
+$\Cov_k(H_k,g_k):=\mathbb E_k[H_kg_k]-\mathbb E_k[H_k]\,\mathbb E_k[g_k]\in\R^d$,
+the covariance taken \emph{through} the matrix--vector product, with
+$\mathbb E_k$ the expectation under the weights $\beta_k$.
 
 \begin{assumption}[Smoothness]\label{ass:smooth}
 There is a closed ball $\mathcal B\subset\R^d$ containing $w$ and a constant
@@ -67,8 +71,13 @@ $\sup_{v\in\mathcal B}\norm{\grad F_k(v)}\le G$,
 $\sup_{v\in\mathcal B}\norm{\grad^2 F_k(v)}\le L$.
 \end{assumption}
 
-For $T\ge0$ small enough that all flow trajectories below remain in
-$\mathcal B$, define the gradient-flow maps
+We further assume $w$ lies in the \emph{interior} of $\mathcal B$. Since each
+flow has speed $\norm{\dot\phi_k^s}=\norm{\grad F_k}\le G$ (and likewise
+$\norm{\dot\psi^s}\le G$), there is a positive escape time
+$T_0\ge \mathrm{dist}(w,\partial\mathcal B)/G$ such that, for every
+$0\le T\le T_0$, all client trajectories $\phi_k^s$ \emph{and} the global
+trajectory $\psi^s$ remain in $\mathcal B$ for $s\in[0,T]$. Define the
+gradient-flow maps
 \begin{equation}
 \Phi_k^{T}(w)=\phi_k^{T},\quad \dot\phi_k^{s}=-\grad F_k(\phi_k^{s}),\ \phi_k^0=w;
 \qquad
@@ -105,7 +114,7 @@ $\tfrac{d}{ds}\phi^s=V(\phi^s)$ and, differentiating again,
 $\tfrac{d^2}{ds^2}\phi^s=DV(\phi^s)\,V(\phi^s)$, where $DV=-\grad^2F_k$. At $s=0$:
 $\phi^0=w$, $\dot\phi^0=-g_k$, $\ddot\phi^0=(-H_k)(-g_k)=H_kg_k$. Taylor's
 theorem with the Lagrange/integral remainder gives \eqref{eq:lie} with
-$R_k(T)=\tfrac16\int_0^T (T-s)^2\,\dddot\phi^{\,s}\,ds$ in the integral form, so
+$R_k(T)=\tfrac12\int_0^T (T-s)^2\,\dddot\phi^{\,s}\,ds$ in the integral form, so
 $\norm{R_k(T)}\le \tfrac{T^3}{6}\sup_{s\le T}\norm{\dddot\phi^s}$. Differentiating
 a third time,
 \[
@@ -116,7 +125,8 @@ and $\norm{D^2V}=\norm{\grad^3F_k}\le\rho$, $\norm{DV}=\norm{\grad^2F_k}\le L$,
 $\norm{V}=\norm{\grad F_k}\le G$ on $\mathcal B$, so
 $\norm{\dddot\phi^s}\le \rho G^2+L^2G=C_3$. The statement for $\Phi_f^T$ is
 identical because $\grad^3 f=\sum_k\beta_k\grad^3F_k$ obeys the same bound by
-convexity of the norm and $\sum_k\beta_k=1$.
+the triangle inequality, using $\beta_k\ge0$ and $\sum_k\beta_k=1$ (no convexity
+of the objectives is assumed or used anywhere).
 \end{proof}
 
 \section{Main result}
@@ -173,11 +183,14 @@ Finally \eqref{eq:thm2} is the reverse triangle inequality applied to
 \end{proof}
 
 \begin{remark}[Unequal horizons]\label{rem:unequal}
-If client horizons differ, $T_k=\eta u_k$ with $u_k=En_k/B$, define the
-weighted mean horizon $\bar T=\sum_k\beta_k T_k$. Then
-$\mathcal S(w)-\Phi_f^{\bar T}(w)=-\sum_k\beta_k(T_k-\bar T)g_k
+If client horizons differ, $T_k=\eta u_k$ with $u_k=En_k/B$, assume
+$\max_k T_k\le T_0$ (so every $\phi_k^{T_k}$ and the reference $\psi^{\bar T}$
+stay in $\mathcal B$), and define the weighted mean horizon
+$\bar T=\sum_k\beta_k T_k$ and the heterogeneous server map
+$\mathcal S_{\mathrm{het}}(w):=\sum_k\beta_k\Phi_k^{T_k}(w)$. Then
+$\mathcal S_{\mathrm{het}}(w)-\Phi_f^{\bar T}(w)=-\sum_k\beta_k(T_k-\bar T)g_k
 +\tfrac12\big(\sum_k\beta_kT_k^2H_kg_k-\bar T^2Hg\big)+O(T^3)$. The new
-first-order term $\sum_k\beta_k(T_k-\bar T)g_k=\Cov_k(T_k,g_k)$ is the
+first-order term $-\sum_k\beta_k(T_k-\bar T)g_k=-\Cov_k(T_k,g_k)$ is the
 \emph{size-heterogeneity} drift; it vanishes when client sizes are equal
 ($T_k\equiv T$, recovering Theorem~\ref{thm:main}) or when one compares against
 the size-weighted reference $\sum_k\beta_k\Phi_f^{T_k}$. Either way the result is
@@ -188,8 +201,8 @@ separately.
 \begin{lemma}[Discrete-to-flow consistency]\label{lem:euler}
 Let $\widehat\Phi_k^{T}$ be the $u_k$-step explicit Euler discretization of
 \eqref{eq:flows} with step $\eta=T/u_k$ (i.e.\ literal full-batch local GD). Then
-$\norm{\widehat\Phi_k^{T}(w)-\Phi_k^{T}(w)}\le \tfrac{T}{2}\,L G\,\eta
-=\tfrac{LGT^2}{2u_k}\to0$ as $u_k\to\infty$ at fixed $T$. Hence the discrete
+$\norm{\widehat\Phi_k^{T}(w)-\Phi_k^{T}(w)}\le \tfrac{\eta}{2}\,G\,(e^{LT}-1)
+=\tfrac{GT(e^{LT}-1)}{2u_k}=O(\eta)\to0$ as $u_k\to\infty$ at fixed $T$. Hence the discrete
 FedAvg server map satisfies the bound \eqref{eq:thm2} up to an additional
 $O(\eta)=O(T/u_k)$ term, which the prototype confirms vanishes as $E$ grows at
 fixed $T$.
@@ -197,17 +210,21 @@ fixed $T$.
 
 \begin{proof}
 Standard global-error bound for explicit Euler on a field with Jacobian bound
-$L$ and second-derivative-of-solution bound $\norm{\ddot\phi}\le LG$: the global
-error is $\le \tfrac{\eta}{2L}(e^{LT}-1)\sup\norm{\ddot\phi}$; for $LT$ bounded
-this is $O(\eta)$ with constant $\le \tfrac12 LG\,e^{LT}T$. Averaging over $k$
-preserves the bound.
+$L$ and second-derivative-of-solution bound $\norm{\ddot\phi}\le LG$ (since
+$\ddot\phi=DV\,V$ with $\norm{DV}\le L$, $\norm{V}\le G$): the global error is
+$\le \tfrac{\eta}{2L}(e^{LT}-1)\sup\norm{\ddot\phi}\le\tfrac{\eta}{2L}(e^{LT}-1)\,LG
+=\tfrac{\eta}{2}G(e^{LT}-1)$, which is $O(\eta)=O(T/u_k)$ for $LT$ bounded.
+Averaging over $k$ with $\sum_k\beta_k=1$ preserves the bound.
 \end{proof}
 
 \section{Consequences}
 
 \paragraph{Effective outer ODE.} Iterating Theorem~\ref{thm:main}, the server
-sequence $w_{t+1}=\Phi_f^{T}(w_t)-\tfrac{T^2}{2}\Gamma(w_t)+O(T^3)$ shadows, in
-the slow time $s=tT$ and to first order in $T$, the perturbed flow
+sequence $w_{t+1}=\Phi_f^{T}(w_t)-\tfrac{T^2}{2}\Gamma(w_t)+O(T^3)$ is, in the
+slow time $s=tT$, a consistent one-step discretization of the modified
+(backward-error) flow below: over a slow-time interval $[0,S]$ the $N=S/T$ steps
+accumulate $N\cdot O(T^3)=O(T^2)$ error, so to first order in $T$ the iterates
+track the perturbed flow
 \[
 \frac{dw}{ds}=-\grad f(w)-\frac{T}{2}\,\Cov_k\big(H_k,g_k\big)+O(T^2).
 \]
@@ -218,10 +235,13 @@ deep-dive's $\Delta$; it vanishes when clients are statistically identical
 \paragraph{Recovering and correcting the heuristic.} For $E=2$, $B=\infty$ we
 have $u_k=2$, $T=2\eta$, and Theorem~\ref{thm:main} gives drift
 $\tfrac{(2\eta)^2}{2}\sigma_{HG}=2\eta^2\sigma_{HG}$ with the \emph{same} object
-$\Gamma=\Cov_k(H_k,g_k)$ as the two-step Taylor sketch. For general $E$ the
-correct prefactor is $T^2/2=(\eta u_k)^2/2$, not the frozen $\eta^2$: the
-heuristic mispredicts the magnitude by a factor $u_k^2/4$ (e.g.\ $\approx 6\times$
-at $E=5$). The single invariant is $T=\eta E n_k/B$.
+$\Gamma=\Cov_k(H_k,g_k)$ as the two-step Taylor sketch. This flow value
+$2\eta^2$ is exactly twice the discrete two-step heuristic $\eta^2$; the factor
+$2$ is the explicit-Euler global error of Lemma~\ref{lem:euler} at $u_k=2$, and it
+shrinks as $O(1/u_k)$ once $E$ grows. For general $E$ the correct prefactor is
+$T^2/2=(\eta u_k)^2/2$, not the frozen $\eta^2$: relative to the raw $\eta^2$
+heuristic the magnitude grows by $u_k^2/2$ (a factor $2$ already at $E=2$ and
+$12.5$ at $E=5$). The single invariant is $T=\eta E n_k/B$.
 
 \appendix
 \section{Softmax cross-entropy satisfies Assumption~\ref{ass:smooth}}
@@ -229,9 +249,13 @@ For mean cross-entropy with softmax probabilities $p_i=\mathrm{softmax}(x_i^\top
 the gradient is $\tfrac1m\sum_i x_i(p_i-y_i)^\top$ and the Hessian acts as
 $H[V]=\tfrac1m\sum_i x_i\big((\diag(p_i)-p_ip_i^\top)(x_i^\top V)\big)^\top$
 (used verbatim in the prototype's exact Hessian-vector product). All derivatives
-are bounded on any bounded $W$-set because $p\mapsto$ softmax is $C^\infty$ with
-bounded derivatives ($\norm{p}\le1$) and the data $\{x_i\}$ are fixed; hence
-Assumption~\ref{ass:smooth} holds on any ball, with constants depending only on
-$\max_i\norm{x_i}$.
+are bounded on \emph{all} of $W$-space because $p\mapsto$ softmax is $C^\infty$
+with bounded derivatives ($\norm{p}\le1$) and the data $\{x_i\}$ are fixed;
+concretely $G\le\sqrt2\,\max_i\norm{x_i}$, $L\le\max_i\norm{x_i}^2$, and
+$\rho\le 2\max_i\norm{x_i}^3$. Since these hold on every ball, one may take
+$\mathcal B$ large enough around $w$ that the speed-$\le G$ flow stays inside for
+$T\le T_0=\mathrm{dist}(w,\partial\mathcal B)/G>0$; hence
+Assumption~\ref{ass:smooth} holds in full (both the constants and the
+trajectory-confinement).
 
 \end{document}

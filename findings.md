@@ -65,7 +65,7 @@ Two proposed extensions (the continuous-time / dynamics-lens pair) were lifted i
 
 ### Node 07 — effective-ODE drift bound (theoretical, §T.3, `proofs/effective-ode-averaging-bound.tex`)
 
-Turns the math deep dive's *heuristic* per-round drift $\Delta=\eta^2\mathrm{Cov}_k(H_k,g_k)$ into a theorem: idealizing each client's $u_k$ local steps as gradient flow for time $T=\eta u_k$, the server-vs-centralized drift is exactly $\|\mathcal S^T(w)-\Phi_f^T(w)\|=\tfrac{T^2}{2}\|\mathrm{Cov}_k(H_k,g_k)\|+O(T^3)$. **Corrects the prefactor** ($T^2/2$, not the frozen $\eta^2$; the heuristic underpredicts by $u_k^2/4$, ~6× at E=5). Single invariant: $T=\eta E n_k/B$.
+Turns the math deep dive's *heuristic* per-round drift $\Delta=\eta^2\mathrm{Cov}_k(H_k,g_k)$ into a theorem: idealizing each client's $u_k$ local steps as gradient flow for time $T=\eta u_k$, the server-vs-centralized drift is exactly $\|\mathcal S^T(w)-\Phi_f^T(w)\|=\tfrac{T^2}{2}\|\mathrm{Cov}_k(H_k,g_k)\|+O(T^3)$. **Corrects the prefactor** ($T^2/2$, not the frozen $\eta^2$; vs the raw $\eta^2$ heuristic the drift grows by $u_k^2/2$ — a factor 2 at E=2, which is exactly the Euler error of the 2-step sketch, rising to 12.5× at E=5). Single invariant: $T=\eta E n_k/B$.
 
 Drift law verified numerically:
 - drift scales as **T^2.06** (log-log slope vs predicted 2),

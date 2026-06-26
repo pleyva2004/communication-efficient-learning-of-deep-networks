@@ -11,7 +11,7 @@ F_k. A Lie-Taylor expansion gives the EXACT leading drift
 with leading direction Cov_k(H_k,g_k)/||.||. This witness (i) measures the drift's
 log-log slope vs T (predicted 2), (ii) checks D_t / pred -> ~1 as T -> 0, (iii)
 checks the drift direction matches Cov_k(H_k,g_k) to cosine ~1, and (iv) shows the
-heuristic frozen-eta^2 prefactor underpredicts by u_k^2/4 (~6x at E=5).
+heuristic frozen-eta^2 prefactor underpredicts by u_k^2/2 (~12.5x at E=5).
 Runnable code analog of concepts/07-effective-ode-averaging-bound.md.
 """
 import numpy as np
@@ -100,32 +100,31 @@ def main():
     cos = float(drift_vec @ Gamma / (np.linalg.norm(drift_vec) * sigma_HG))
     print("  drift direction . Cov_k(H_k,g_k) cosine = %.4f  (predicted ~1.0)\n" % cos)
 
-    # (3) the heuristic Delta = eta^2 Cov_k(H_k,g_k) FREEZES the prefactor at eta^2;
-    # (3) the heuristic Delta = eta^2 Cov_k(H_k,g_k) is the two-step Taylor sketch:
-    # it equals the EXACT law only at its calibration point E=2, B=inf (T=2*eta),
-    # where the correct prefactor is (2*eta)^2/2 = 2*eta^2. Read against that
-    # reference, the correct prefactor T^2/2 at general u_k overshoots the frozen
-    # heuristic by u_k^2/4 (~6x at E=5): the heuristic UNDERPREDICTS the drift.
-    print("Heuristic prefactor vs theorem at fixed eta, varying E (B=inf => u_k=E):")
+    # (3) the heuristic Delta = eta^2 Cov_k(H_k,g_k) is the two-step Taylor sketch.
+    # The exact prefactor is T^2/2 = (eta*u_k)^2/2, so relative to the RAW eta^2
+    # heuristic the drift grows by u_k^2/2: a factor 2 already at E=2 (where that
+    # factor 2 is exactly the explicit-Euler error of the 2-step sketch) and 12.5
+    # at E=5. The heuristic UNDERPREDICTS the drift.
+    print("Heuristic prefactor (eta^2) vs theorem (T^2/2) at fixed eta, varying E (B=inf => u_k=E):")
     eta = 0.05
-    heuristic = 2.0 * eta ** 2                  # two-step Taylor sketch = exact at E=2
+    heuristic = eta ** 2                        # raw two-step heuristic prefactor
     for E in (2, 5, 10):
         u_k = E                               # B=inf, full batch => u_k = E
         T = eta * u_k
         correct = 0.5 * T ** 2                 # theorem prefactor (T^2/2)
-        underpred = correct / heuristic        # = u_k^2/4
-        tag = "  <- heuristic = exact (E=2 calibration point)" if E == 2 else ""
-        print("  E=%-3d u_k=%-3d  T=%.3f | theorem T^2/2=%.4e  heuristic 2*eta^2=%.4e"
-              "  underpred x%.2f (=u_k^2/4)%s"
+        underpred = correct / heuristic        # = u_k^2/2
+        tag = "  <- factor 2 = Euler error of the 2-step sketch" if E == 2 else ""
+        print("  E=%-3d u_k=%-3d  T=%.3f | theorem T^2/2=%.4e  heuristic eta^2=%.4e"
+              "  underpred x%.2f (=u_k^2/2)%s"
               % (E, u_k, T, correct, heuristic, underpred, tag))
 
     ok_slope = abs(slope - 2.0) < 0.15
     ok_ratio = abs(ratios[0] - 1.0) < 0.15
     ok_dir = cos > 0.99
-    ok_pref = abs((0.5 * (eta * 5) ** 2) / (2.0 * eta ** 2) - 5 ** 2 / 4.0) < 1e-9
+    ok_pref = abs((0.5 * (eta * 5) ** 2) / (eta ** 2) - 5 ** 2 / 2.0) < 1e-9
     ok = ok_slope and ok_ratio and ok_dir and ok_pref
     print("\nVERDICT: %s -- drift = (T^2/2)||Cov_k(H_k,g_k)|| + O(T^3); slope=%.2f, "
-          "ratio->%.2f, cos=%.4f, heuristic underpredicts by u_k^2/4."
+          "ratio->%.2f, cos=%.4f, heuristic underpredicts by u_k^2/2."
           % ("PASS" if ok else "FAIL", slope, ratios[0], cos))
     assert ok, "effective-ODE drift law must hold to O(T^2)"
 

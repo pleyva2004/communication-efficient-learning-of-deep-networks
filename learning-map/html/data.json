@@ -243,7 +243,7 @@
       "label": "Effective-ODE Averaging Bound",
       "graph": "improvements",
       "page": "improvements/concepts/07-effective-ode-averaging-bound.md",
-      "summary": "Idealizing each client's u_k local steps as the gradient flow of F_k for time T=eta*u_k makes the server-vs-centralized drift exactly (T^2/2)||Cov_k(H_k,g_k)||+O(T^3): turns the deep dive's heuristic eta^2 Cov_k(H_k,g_k) into a theorem and corrects its prefactor (heuristic underpredicts by u_k^2/4, ~6x at E=5); single invariant T=eta*E*n_k/B. Validation: proofs/effective-ode-averaging-bound.tex."
+      "summary": "Idealizing each client's u_k local steps as the gradient flow of F_k for time T=eta*u_k makes the server-vs-centralized drift exactly (T^2/2)||Cov_k(H_k,g_k)||+O(T^3): turns the deep dive's heuristic eta^2 Cov_k(H_k,g_k) into a theorem and corrects its prefactor (vs the raw eta^2 the drift grows by u_k^2/2, ~12.5x at E=5; the factor 2 at E=2 is the 2-step Euler error); single invariant T=eta*E*n_k/B. Validation: proofs/effective-ode-averaging-bound.tex."
     },
     {
       "id": "I08",
