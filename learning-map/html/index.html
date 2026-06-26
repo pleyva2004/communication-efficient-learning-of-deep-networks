@@ -1,0 +1,38 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>FedAvg Learning Map</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://d3js.org/d3.v7.min.js"></script></head><body>
+<div id="h"><h1>FedAvg Learning Map &mdash; interactive graph</h1>
+<p class="legend"><span class="swatch" style="background:#999"></span>foundations
+&nbsp;<span class="swatch" style="background:#3399ff"></span>paper
+&nbsp;<span class="swatch" style="background:#ff9933"></span>improvements
+&nbsp;&mdash; drag to rearrange, scroll to zoom, click a node for detail.</p></div>
+<div id="panel"></div>
+<svg id="g" width="100%" height="800"></svg>
+<script>
+const color={foundations:"#999",paper:"#3399ff",improvements:"#ff9933"};
+d3.json("data.json").then(data=>{
+ const svg=d3.select("#g"), W=svg.node().clientWidth, H=800;
+ svg.append("defs").append("marker").attr("id","arrow").attr("viewBox","0 -5 10 10")
+   .attr("refX",22).attr("refY",0).attr("markerWidth",6).attr("markerHeight",6).attr("orient","auto")
+   .append("path").attr("d","M0,-5L10,0L0,5").attr("fill","#bbb");
+ const root=svg.append("g");
+ svg.call(d3.zoom().scaleExtent([0.3,3]).on("zoom",e=>root.attr("transform",e.transform)));
+ const sim=d3.forceSimulation(data.nodes)
+   .force("link",d3.forceLink(data.links).id(d=>d.id).distance(90))
+   .force("charge",d3.forceManyBody().strength(-320))
+   .force("center",d3.forceCenter(W/2,H/2));
+ const link=root.append("g").selectAll("line").data(data.links).join("line").attr("class","link");
+ const node=root.append("g").selectAll("g").data(data.nodes).join("g").attr("class","node")
+   .call(d3.drag().on("start",(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;})
+     .on("drag",(e,d)=>{d.fx=e.x;d.fy=e.y;}).on("end",(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}));
+ node.append("circle").attr("r",d=>d.graph==="foundations"?7:10).attr("fill",d=>color[d.graph]);
+ node.append("text").attr("x",13).attr("y",4).text(d=>d.label.length>28?d.label.slice(0,28)+"…":d.label);
+ node.on("click",(e,d)=>{const p=d3.select("#panel");p.style("display","block");
+   p.html(`<h2>${d.label}</h2><p><b>${d.graph}</b></p><p>${d.summary||""}</p>`+
+     (d.page?`<p><a href="../${d.page}">concept page →</a></p>`:"")+
+     (d.url?`<p><a href="${d.url}" target="_blank">foundation page →</a></p>`:""));});
+ sim.on("tick",()=>{link.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y).attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+   node.attr("transform",d=>`translate(${d.x},${d.y})`);});
+});
+</script></body></html>

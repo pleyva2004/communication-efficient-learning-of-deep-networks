@@ -1,0 +1,155 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black
+}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny,
+  showstringspaces=false
+}
+
+\title{Proposed Improvements to \citet{mcmahan2017fedavg}}
+\author{Forward-thinking proposals}
+\date{Studied: 2026-06-25 \\ \texttt{arXiv:1602.05629}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+FedAvg \citep{mcmahan2017fedavg} is justified entirely empirically: it proves no convergence result, leaves the $E>1$ regime uncharacterized, relies on a shared per-round initialization whose necessity it only illustrates, and ships an erratum-corrected aggregation rule whose statistical properties it never analyzes. We propose four concrete improvements that each attack one of these gaps, and back every one with a runnable prototype under \texttt{improvements/}. Two are \emph{mathematical}: cancelling the client-heterogeneity drift term that this study derived as the leading $E>1$ deviation from centralized gradient descent, and restoring exact unbiasedness to the aggregation step under client imbalance. One is \emph{experimental}: scheduling the per-round local work like a learning rate to dodge the large-$E$ plateau. One is \emph{theoretical}: importing permutation weight-matching so averaging works \emph{without} a shared initialization. Each prototype reproduces its claimed effect on the study's toy harness in under a minute on CPU.
+\end{abstract}
+
+\section*{Mathematical Improvements}
+
+The math deep dive isolated two precise weaknesses in FedAvg's update: a leading-order \emph{heterogeneity drift} for $E>1$, and a \emph{biased aggregation estimator} under client imbalance. Each admits a clean fix with an accompanying prototype.
+
+\subsection*{M.1 Heterogeneity-corrected local steps (control variates)}
+
+The math deep dive shows that FedAvg's per-round deviation from centralized gradient descent is, to leading order in the local learning rate, $\Delta=\eta^2\,\mathrm{Cov}_k(H_k,g_k)+O(\eta^3)$ (eq.~3.5): a \emph{client-heterogeneity} term---the client-weighted covariance between local Hessians $H_k=\nabla^2 F_k(w_t)$ and local gradients $g_k=\nabla F_k(w_t)$---that vanishes only in the homogeneous (IID) limit. This $\mathrm{Cov}_k$ object is precisely the ``client-drift'' that degrades FedAvg's per-round progress on pathological non-IID partitions: each client takes multiple local steps toward \emph{its own} biased optimum rather than the global one. We propose to cancel this leading drift with SCAFFOLD-style control variates \citep{karimireddy2020scaffold}. Each client $k$ holds a control variate $c_k$ estimating its local gradient direction at the global model, the server holds $c=\frac{1}{|S_t|}\sum_{k\in S_t}c_k$, and every local SGD step uses the \emph{heterogeneity-corrected} direction $g_{\mathrm{local}}(w)-c_k+c$ instead of the raw $g_{\mathrm{local}}(w)$. In expectation the $-c_k+c$ term re-centers each client onto the global direction, removing the $\mathrm{Cov}_k(H_k,g_k)$ bias so non-IID training needs fewer rounds. This is the variance-reduction alternative to the proximal anchor of FedProx \citep{li2020fedprox}, which instead adds a quadratic penalty $\tfrac{\mu}{2}\lVert w-w_t\rVert^2$ to keep local iterates near the global model.
+
+\begin{align}
+\text{Local step (client } k\text{):}\quad
+  w &\leftarrow w-\eta\bigl(g_{\mathrm{local}}(w)-c_k+c\bigr),\\
+\text{Server control variate:}\quad
+  c &= \tfrac{1}{|S_t|}\textstyle\sum_{k\in S_t} c_k,\\
+\text{Control-variate refresh (Option II):}\quad
+  c_k^{+} &= c_k - c + \tfrac{w_t-w^k}{\tau\,\eta},
+\end{align}
+which cancels the leading client-heterogeneity drift $\Delta=\eta^2\,\mathrm{Cov}_k(H_k,g_k)+O(\eta^3)$ of eq.~(3.5), recovering $w\leftarrow w-\eta\,\nabla f(w)$ in expectation. A runnable prototype lives at \texttt{improvements/heterogeneity-control-variate.py}; on the study's pathological non-IID softmax-regression harness ($K{=}100$, $C{=}0.1$) it needs fewer-or-equal rounds than vanilla FedAvg on all four $(E,B)$ settings:
+
+\begin{lstlisting}
+Rounds to reach 95% test accuracy on the PATHOLOGICAL NON-IID partition
+config        u  | vanilla | control-variate | improvement
+E=5,  B=inf    5 |     23  |       12         | 1.92x fewer (-11)
+E=20, B=inf   20 |     13  |        7         | 1.86x fewer  (-6)
+E=5,  B=10    30 |     12  |        8         | 1.50x fewer  (-4)
+E=20, B=10   120 |      7  |        7         | 1.00x  (tie, both fast)
+total over 4 configs:  vanilla = 55   control-variate = 34   (1.62x fewer)
+VERDICT: PASS -- control variates need FEWER-OR-EQUAL non-IID rounds.
+\end{lstlisting}
+
+\subsection*{M.2 Unbiased aggregation under client imbalance}
+
+The erratum-corrected FedAvg server update $w_{t+1}=\sum_{k\in S}(n_k/m_t)\,w^k$ with $m_t=\sum_{k\in S}n_k$ is, as a self-normalized weighted average over the randomly selected set $S$, a H\'ajek \emph{ratio} estimator of the full weighted mean $\bar v=\sum_{k=1}^K (n_k/n)\,w^k$ \citep{mcmahan2017fedavg}. Because the normalizer $m_t$ is itself random and positively correlated with whichever clients are drawn, this estimator is exactly unbiased only in the balanced regime $n_k\equiv n/K$ used in the paper's MNIST/CIFAR experiments; under client size imbalance with uniform sampling it carries an $O(1/m)$ bias that systematically over-represents large clients. We propose two fixes that restore \emph{exact} unbiasedness for any imbalance and without an IID assumption. (a) \textbf{Horvitz--Thompson} inverse-probability weighting replaces the random normalizer with the fixed inclusion probability $p_k=m/K$, weighting each sampled term by $1/p_k$; the $p_k$ then cancels combinatorially so the estimator is unbiased term-by-term. (b) \textbf{Size-proportional client sampling} draws clients with $p_k\propto n_k$, after which the self-normalized average reduces to a plain mean whose per-draw expectation is already $\bar v$.
+
+\begin{align}
+\text{Target:}\quad & \bar v = \textstyle\sum_{k=1}^{K}\tfrac{n_k}{n}\,v_k,\\
+\text{Self-normalized (biased under imbalance):}\quad & w_{t+1}=\textstyle\sum_{k\in S}\tfrac{n_k}{m_t}\,v_k,\quad m_t=\textstyle\sum_{k\in S} n_k\ (\text{random}),\\
+\text{(a) Horvitz--Thompson:}\quad & g_{\mathrm{HT}}(S)=\tfrac{K}{m}\textstyle\sum_{k\in S}\tfrac{n_k}{n}\,v_k,\qquad \mathbb{E}_S[g_{\mathrm{HT}}]=\bar v,\\
+\text{(b) Size-proportional } (p_k\propto n_k):\quad & w_{t+1}=\tfrac{1}{m}\textstyle\sum_{k\in S} v_k,\qquad \mathbb{E}_S[w_{t+1}]=\bar v.
+\end{align}
+A pure-numpy Monte-Carlo prototype (\texttt{improvements/unbiased-aggregation.py}, $K{=}100$, sizes spanning $[10,1000]$, $4\times10^5$ draws) measures the bias norm $\lVert\mathbb{E}[\text{agg}]-\bar v\rVert$:
+
+\begin{lstlisting}
+population    estimator                    bias ||E[agg]-vbar||   verdict
+IMBALANCED    self-norm n_k/m_t (FedAvg)         1.612e-01        BIASED
+IMBALANCED    Horvitz-Thompson  (a)             2.177e-03        ~0 (unbiased)
+IMBALANCED    size-prop sampling (b)            1.930e-03        ~0 (unbiased)
+BALANCED      self-norm n_k/m_t (FedAvg)         1.314e-03        ~0 (unbiased)
+Under imbalance, the self-normalized bias is 74x the Horvitz-Thompson bias.
+\end{lstlisting}
+
+\section*{Implementation / Code Improvements}
+
+\subsection*{C.1 A runnable prototype suite for the federated-optimization gaps}
+
+Rather than a single refactor, the practical contribution here is a set of four small, self-contained, CPU-runnable ($<1$\,min) prototypes that make each proposed change \emph{measurable} on a transparent harness, so a reader can confirm the direction of every claim before committing to a full re-implementation. Two implementation details are worth highlighting as efficiency wins in their own right. First, the control-variate refresh of M.1 uses SCAFFOLD's cheap ``Option~II'' update $c_k^{+}=c_k-c+(w_t-w^k)/(\tau\eta)$, which reuses the local steps already taken and therefore costs \emph{no} extra forward/backward pass per round---the heterogeneity correction is essentially free in compute, paid only in one extra adapter-sized state vector per client. Second, the aggregation fixes of M.2 are server-side and stateless: Horvitz--Thompson reweighting changes only the coefficients applied to received updates, and size-proportional sampling changes only the client-selection distribution---neither touches the client code. Each prototype prints a baseline-versus-proposed comparison and a \texttt{PASS} verdict.
+
+\begin{lstlisting}
+improvements/heterogeneity-control-variate.py  -> M.1  (1.62x fewer non-IID rounds)
+improvements/unbiased-aggregation.py           -> M.2  (bias 1.6e-1 -> 2e-3)
+improvements/adaptive-local-work.py            -> E.1  (decayed-E beats every fixed E)
+improvements/permutation-aligned-averaging.py  -> T.1  (barrier +0.024 -> -0.023)
+\end{lstlisting}
+
+\section*{Experimental Extensions}
+
+\subsection*{E.1 Adaptive local computation: decay $E$ like a learning rate}
+
+McMahan et al. observe that a large number of local epochs $E$ can make FedAvg \emph{plateau} (and occasionally diverge): each client over-optimizes its own local objective and drifts out of the shared basin, so averaging the heavily-drifted local models stalls short of the global optimum---the same failure mode that sinks naive one-shot averaging \citep{zhang2012communication}. They explicitly suggest that ``it may be useful to decay the amount of local computation per round (by decaying $E$ or increasing $B$) \dots analogous to decaying learning rates'' but run no such experiment. We propose treating the per-round local work $u=(\bar n/B)E$ as a server-side hyperparameter \emph{scheduled} like a learning rate: start with a large $E$ for fast early progress, then step-decay $E$ toward FedSGD-like steps ($E\!\to\!1$) late, so clients no longer overshoot once the global model nears the shared compromise. Crucially this needs \emph{no} extra client state or communication---unlike FedProx \citep{li2020fedprox} or SCAFFOLD \citep{karimireddy2020scaffold}.
+
+$$ E_t = \max\!\Big(E_{\min},\ \big\lfloor E_{\max}\,2^{-\lfloor t/\tau \rfloor} \big\rfloor\Big),\qquad \tau = \frac{R}{\log_2(E_{\max}/E_{\min})+1}. $$
+On the study's toy under an \emph{extreme} non-IID partition (one class per client, overlapping blobs---an engineered convex analogue of the paper's Fig.~3 plateau) over a fixed $R{=}120$-round budget, the prototype (\texttt{improvements/adaptive-local-work.py}) shows the decayed schedule beats \emph{every} fixed $E$ in a real sweep, while fixed-large $E$ exhibits the predicted fast-then-plateau pathology:
+
+\begin{lstlisting}
+arm                  E      avg u    final test acc
+fixed small E        1        1.0       38.45%
+fixed LARGE E      100      100.0       36.50%   (early +10.7 pts, then late +0.8 -> PLATEAU)
+DECAYED E         40->1     13.0       41.55%   (best)
+fixed-E sweep: E=1:38.45 E=2:40.40 E=5:39.90 E=10:40.50 E=40:39.50 E=100:36.50
+best fixed E = 10 (40.50%);  decayed E (41.55%) beats it;  centralized ceiling = 44.00%.
+\end{lstlisting}
+
+\subsection*{E.2 Measure the ``computation is free'' premise (design)}
+
+The entire compute-for-communication thesis rests on the unquantified assertion that on-device computation is ``essentially free compared to communication.'' We propose the control the paper omits: instrument the clients to log wall-clock time, energy (via on-device power counters), and FLOPs per local update, and report a \emph{rounds-versus-total-on-device-compute} Pareto frontier rather than rounds alone. The prediction is that the high-$u$ configurations (e.g.\ $E{=}20,B{=}10$, $u_k$ up to $1200$ local updates/round) that look best on the rounds axis are dominated on the compute axis, revealing a genuine knee rather than ``more local work is always better.''
+% TODO prototype needs on-device power/FLOP instrumentation
+
+\section*{Theoretical / Conceptual Connections}
+
+\subsection*{T.1 Permutation-aligned averaging (Git Re-Basin for federated learning)}
+
+The math deep dive attributed Figure~1's loss \emph{barrier} between independently-initialized models to the permutation symmetry of a hidden layer: a one-hidden-layer MLP is invariant under any relabeling $P$ of its $H$ hidden units ($W_1 \mapsto W_1 P^\top$, $b_1 \mapsto P b_1$, $W_2 \mapsto P W_2$), so two nets trained from independent inits occupy \emph{different} elements of the same permutation orbit, and naive parameter averaging blends functionally unrelated units. \citet{mcmahan2017fedavg} sidestep this by re-broadcasting a shared $w_t$ every round, which keeps all clients in a common basin; this is also why the corrected aggregation only helps from a shared initialization \citep{konecny2016strategies}. We propose importing \emph{Git Re-Basin weight-matching} \citep{ainsworth2023gitrebasin} into the aggregation step: before averaging, align each client model into the server's basin by solving for the permutation $P$ that best matches their hidden units, then average the aligned weights. This would relax FedAvg's shared-initialization requirement and, in turn, permit larger local epochs $E$ and fewer synchronization rounds in the drift-prone regime that motivates client-drift corrections such as \citet{karimireddy2020scaffold} and \citet{li2020fedprox}.
+
+$$P^\star = \arg\min_{P\in\Pi_H}\, \big\lVert W_1 - W_1' P^\top \big\rVert_F^2 = \arg\max_{P\in\Pi_H}\, \sum_{i=1}^{H} \big\langle (W_1)_{:,i},\,(W_1')_{:,P(i)}\big\rangle,$$
+where $\Pi_H$ is the set of $H\times H$ permutation matrices; the aligned client is $w'\mapsto P^\star(w')$, a function-preserving symmetry, and the server averages $\tfrac12 w + \tfrac12 P^\star(w')$. The prototype (\texttt{improvements/permutation-aligned-averaging.py}) trains two MLPs from \emph{independent} inits on disjoint halves (the barrier regime), solves the assignment exactly with an in-house pure-numpy Hungarian solver, and finds that alignment turns the loss barrier into a valley:
+
+\begin{lstlisting}
+(a) NAIVE averaging   0.5 w + 0.5 w'
+    loss(w')=0.0964  loss(avg)=0.1206  loss(w)=0.0790  -> barrier = +0.0243 (HURTS)
+(b) PERMUTATION-ALIGNED   0.5 w + 0.5 P(w')   (P = exact Hungarian)
+    loss(P w')=0.0964  loss(avg)=0.0730  loss(w)=0.0790 -> barrier = -0.0233 (HELPS)
+The permutation preserves loss(w') to <1e-9 (verified true MLP symmetry).
+VERDICT: PASS -- alignment eliminates the barrier.
+\end{lstlisting}
+
+\subsection*{T.2 Federated LoRA: making the compute-for-communication trade dramatic (design)}
+
+FedAvg's premise is that per-round \emph{communication} dominates per-round \emph{computation}. For a modern $B$-parameter model that premise is strained: a full model upload is $\Theta(B)$ per client per round. We propose composing FedAvg with low-rank adaptation: freeze the base model (shared once), and run FedAvg \emph{only over LoRA adapters}, so per-round communication drops from $\Theta(B)$ to $\Theta(\text{rank}\times\text{dim})$---in the study's sandbox, $4.3\%$ of parameters. This is the natural modern realization of the communication-reduction program of \citet{konecny2016strategies}, and it makes the compute-for-communication trade strictly more favorable the larger the base model. The sandbox script \texttt{sandbox/real\_fedlora.py} already demonstrates the mechanism (FedAvg over adapters drives loss down while communicating only the adapter); the open theoretical question is whether the heterogeneity drift of M.1 is \emph{amplified} or \emph{damped} in the low-rank subspace, which would determine whether control variates are more or less necessary for federated LoRA. Secure aggregation \citep{bonawitz2017secure} composes cleanly because only the small adapter is aggregated.
+% TODO prototype: full federated-LoRA drift study needs a real base model + GPU host
+
+\section*{Closing}
+
+Of the four, the highest-leverage proposal is \textbf{M.1 (control variates)}: it operationalizes the single most consequential finding of the math deep dive---that the $E>1$ ``free lunch'' is exactly a client-heterogeneity covariance $\eta^2\mathrm{Cov}_k(H_k,g_k)$---turns it into a drift cancellation that the prototype confirms recovers $1.62\times$ communication efficiency under non-IID data, and connects directly to the dominant follow-up line (SCAFFOLD, FedProx). It is also the proposal most likely to compose with the others (it is orthogonal to the aggregation fix of M.2, the schedule of E.1, and the alignment of T.1).
+% TODO author pick: record which proposal the user finds most personally promising once 03-opinions.md is filled.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

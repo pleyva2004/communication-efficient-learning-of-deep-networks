@@ -1,0 +1,404 @@
+{
+  "nodes": [
+    {
+      "id": "F01",
+      "label": "expectation",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/expectation.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F02",
+      "label": "empirical risk",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/empirical-risk.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F03",
+      "label": "partition of a set",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/partition-of-a-set.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F04",
+      "label": "unbiased estimator",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/unbiased-estimator.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F05",
+      "label": "gradient",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/gradient.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F06",
+      "label": "gradient descent",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/gradient-descent.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F07",
+      "label": "taylor theorem",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/taylor-theorem.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F08",
+      "label": "hessian",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/hessian.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F09",
+      "label": "covariance",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/covariance.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F10",
+      "label": "convex function",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/convex-function.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F11",
+      "label": "jensens inequality",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/jensens-inequality.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F12",
+      "label": "permutation group",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/permutation-group.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F13",
+      "label": "control variates",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/control-variates.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F14",
+      "label": "horvitz thompson estimator",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/horvitz-thompson-estimator.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F15",
+      "label": "linear assignment problem",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/linear-assignment-problem.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "F16",
+      "label": "low rank factorization",
+      "graph": "foundations",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/low-rank-factorization.md",
+      "summary": "Foundation concept (shared repo)"
+    },
+    {
+      "id": "P01",
+      "label": "Finite-Sum Objective",
+      "graph": "paper",
+      "page": "paper/concepts/01-finite-sum-objective.md",
+      "summary": "The global objective f(w)=(1/n) sum_i f_i(w): an unweighted average of per-example losses, the target FedAvg minimizes."
+    },
+    {
+      "id": "P02",
+      "label": "Client-Partition Decomposition",
+      "graph": "paper",
+      "page": "paper/concepts/02-client-partition-decomposition.md",
+      "summary": "f(w)=sum_k (n_k/n) F_k(w): an exact algebraic identity rewriting the objective as a data-size-weighted convex combination of per-client losses."
+    },
+    {
+      "id": "P03",
+      "label": "IID vs Non-IID",
+      "graph": "paper",
+      "page": "paper/concepts/03-iid-noniid-dichotomy.md",
+      "summary": "IID means E_{P_k}[F_k(w)]=f(w) (each client's loss is an unbiased proxy for the global); non-IID is the failure of this identity."
+    },
+    {
+      "id": "P04",
+      "label": "FedSGD as Exact Gradient Descent",
+      "graph": "paper",
+      "page": "paper/concepts/04-fedsgd-gradient-descent.md",
+      "summary": "sum_k (n_k/n) g_k = grad f(w_t), so FedSGD (B=inf,E=1,C=1) is exactly distributed full-batch gradient descent."
+    },
+    {
+      "id": "P05",
+      "label": "Gradient- vs Model-Averaging Equivalence",
+      "graph": "paper",
+      "page": "paper/concepts/05-gradient-model-averaging-equivalence.md",
+      "summary": "Averaging one local gradient step equals one global step because sum_k n_k/n = 1; the hinge that lets FedSGD be reorganized as model averaging."
+    },
+    {
+      "id": "P06",
+      "label": "FedAvg: Iterated Local Steps",
+      "graph": "paper",
+      "page": "paper/concepts/06-fedavg-local-iteration.md",
+      "summary": "FedAvg iterates the local SGD step tau>1 times before averaging; for tau>=2 the round map is no longer any number of centralized GD steps."
+    },
+    {
+      "id": "P07",
+      "label": "Local-Update Count u=nE/(KB)",
+      "graph": "paper",
+      "page": "paper/concepts/07-local-update-count.md",
+      "summary": "u_k=E n_k/B local updates per client; expected u=nE/(KB). The (C,E,B) knob that trades on-device compute for communication rounds."
+    },
+    {
+      "id": "P08",
+      "label": "Heterogeneity Gap = eta^2 Cov_k(H_k,g_k)",
+      "graph": "paper",
+      "page": "paper/concepts/08-heterogeneity-gap-covariance.md",
+      "summary": "For E>1 the per-round deviation from centralized GD is, to leading order, eta^2 Cov_k(H_k,g_k): a pure client-heterogeneity term (zero when IID)."
+    },
+    {
+      "id": "P09",
+      "label": "Client-Sampling Unbiasedness (Horvitz-Thompson)",
+      "graph": "paper",
+      "page": "paper/concepts/09-client-sampling-unbiasedness.md",
+      "summary": "Under uniform client sampling, inverse-probability (Horvitz-Thompson) weighting makes the partial-participation gradient an unbiased estimator of grad f."
+    },
+    {
+      "id": "P10",
+      "label": "Aggregation Erratum: normalize by m_t",
+      "graph": "paper",
+      "page": "paper/concepts/10-aggregation-erratum.md",
+      "summary": "The corrected average w_{t+1}=sum_{k in S} (n_k/m_t) w^k (m_t over selected clients); summing n_k/n instead shrinks the model by the factor C each round."
+    },
+    {
+      "id": "P11",
+      "label": "Parameter Averaging & Jensen",
+      "graph": "paper",
+      "page": "paper/concepts/11-parameter-averaging-jensen.md",
+      "summary": "For convex F_k, Jensen gives f(avg) <= avg f, so averaging is safe; non-convex nets have no such guarantee."
+    },
+    {
+      "id": "P12",
+      "label": "Shared-Init & the Permutation Barrier",
+      "graph": "paper",
+      "page": "paper/concepts/12-shared-init-permutation-barrier.md",
+      "summary": "Independently-initialized nets land in incompatible permutation-orbit basins (Fig 1 barrier); FedAvg broadcasts a shared w_t each round to keep clients in one basin."
+    },
+    {
+      "id": "I01",
+      "label": "Control-Variate Drift Correction",
+      "graph": "improvements",
+      "page": "improvements/concepts/01-control-variate-drift-correction.md",
+      "summary": "SCAFFOLD-style local step g_local - c_k + c cancels the eta^2 Cov_k(H_k,g_k) drift; prototype: 1.62x fewer non-IID rounds. Validation: proofs/heterogeneity-control-variate.tex."
+    },
+    {
+      "id": "I02",
+      "label": "Unbiased Aggregation Estimators",
+      "graph": "improvements",
+      "page": "improvements/concepts/02-unbiased-aggregation-estimators.md",
+      "summary": "Horvitz-Thompson / size-proportional sampling restore exact unbiasedness lost by the self-normalized n_k/m_t average under imbalance. Validation: proofs/unbiased-aggregation.tex."
+    },
+    {
+      "id": "I03",
+      "label": "Adaptive Local-Work Schedule",
+      "graph": "improvements",
+      "page": "improvements/concepts/03-adaptive-local-work-schedule.md",
+      "summary": "Decay E (or grow B) over rounds like a learning rate to dodge the large-E plateau; prototype beats every fixed E. Validation: improvements/adaptive-local-work.py measure()."
+    },
+    {
+      "id": "I04",
+      "label": "Compute-Accounting Pareto (design)",
+      "graph": "improvements",
+      "page": "improvements/concepts/04-compute-accounting-pareto.md",
+      "summary": "Measure the unquantified 'computation is free' premise: report a rounds-vs-total-on-device-compute Pareto frontier. Design proposal (E.2); link-only."
+    },
+    {
+      "id": "I05",
+      "label": "Permutation-Aligned Averaging (Git Re-Basin for FL)",
+      "graph": "improvements",
+      "page": "improvements/concepts/05-permutation-aligned-averaging.md",
+      "summary": "Align client models modulo permutation before averaging to relax the shared-init requirement; prototype flips barrier +0.024 -> -0.023. Validation: proofs/permutation-aligned-averaging.tex."
+    },
+    {
+      "id": "I06",
+      "label": "Federated LoRA (design)",
+      "graph": "improvements",
+      "page": "improvements/concepts/06-federated-lora-communication.md",
+      "summary": "Run FedAvg over LoRA adapters only: per-round communication drops from Theta(B) to Theta(rank*dim) (4.3% in the sandbox). Design proposal (T.2); link-only."
+    }
+  ],
+  "links": [
+    {
+      "source": "F01",
+      "target": "P01"
+    },
+    {
+      "source": "F02",
+      "target": "P01"
+    },
+    {
+      "source": "P01",
+      "target": "P02"
+    },
+    {
+      "source": "F03",
+      "target": "P02"
+    },
+    {
+      "source": "P02",
+      "target": "P03"
+    },
+    {
+      "source": "F04",
+      "target": "P03"
+    },
+    {
+      "source": "P02",
+      "target": "P04"
+    },
+    {
+      "source": "F05",
+      "target": "P04"
+    },
+    {
+      "source": "F06",
+      "target": "P04"
+    },
+    {
+      "source": "P04",
+      "target": "P05"
+    },
+    {
+      "source": "P05",
+      "target": "P06"
+    },
+    {
+      "source": "P06",
+      "target": "P07"
+    },
+    {
+      "source": "P06",
+      "target": "P08"
+    },
+    {
+      "source": "F07",
+      "target": "P08"
+    },
+    {
+      "source": "F08",
+      "target": "P08"
+    },
+    {
+      "source": "F09",
+      "target": "P08"
+    },
+    {
+      "source": "P03",
+      "target": "P09"
+    },
+    {
+      "source": "P04",
+      "target": "P09"
+    },
+    {
+      "source": "F04",
+      "target": "P09"
+    },
+    {
+      "source": "P09",
+      "target": "P10"
+    },
+    {
+      "source": "P02",
+      "target": "P11"
+    },
+    {
+      "source": "F10",
+      "target": "P11"
+    },
+    {
+      "source": "F11",
+      "target": "P11"
+    },
+    {
+      "source": "P11",
+      "target": "P12"
+    },
+    {
+      "source": "F12",
+      "target": "P12"
+    },
+    {
+      "source": "P08",
+      "target": "I01"
+    },
+    {
+      "source": "P06",
+      "target": "I01"
+    },
+    {
+      "source": "F13",
+      "target": "I01"
+    },
+    {
+      "source": "P10",
+      "target": "I02"
+    },
+    {
+      "source": "P09",
+      "target": "I02"
+    },
+    {
+      "source": "F14",
+      "target": "I02"
+    },
+    {
+      "source": "P07",
+      "target": "I03"
+    },
+    {
+      "source": "P08",
+      "target": "I03"
+    },
+    {
+      "source": "P07",
+      "target": "I04"
+    },
+    {
+      "source": "P12",
+      "target": "I05"
+    },
+    {
+      "source": "F12",
+      "target": "I05"
+    },
+    {
+      "source": "F15",
+      "target": "I05"
+    },
+    {
+      "source": "P04",
+      "target": "I06"
+    },
+    {
+      "source": "P06",
+      "target": "I06"
+    },
+    {
+      "source": "F16",
+      "target": "I06"
+    }
+  ]
+}

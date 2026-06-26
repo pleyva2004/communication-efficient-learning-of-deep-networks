@@ -1,0 +1,20 @@
+# FedAvg sandbox dependencies.
+#
+# Level 1 (toy_fedavg.py, tiny_fedavg_averaging.py) needs ONLY numpy.
+# Level 2 (torch_fedavg.py, real_fedlora.py) needs torch (+ transformers/peft for LoRA).
+#
+# This study used `uv` into a local .venv (system Python 3.9.6):
+#     uv venv .venv --python /usr/bin/python3
+#     uv pip install --python .venv/bin/python -r sandbox/requirements.txt
+# then run any script with .venv/bin/python.
+#
+# Pinned to the versions actually verified on the study machine (Apple M5 Max, MPS).
+
+# --- Level 1 (required) ---
+numpy==2.0.2
+
+# --- Level 2 (optional; scripts soft-import and exit 0 if absent) ---
+torch==2.8.0            # MPS on Apple Silicon, CUDA on NVIDIA, CPU fallback
+transformers==4.57.6    # real_fedlora.py only
+peft==0.17.1            # real_fedlora.py only (LoRA adapters)
+accelerate==1.10.1      # real_fedlora.py only

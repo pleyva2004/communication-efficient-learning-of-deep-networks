@@ -1,0 +1,44 @@
+{
+  "version": "0.1",
+  "graph": "improvements",
+  "description": "Improvements-graph concept manifest, derived from 05-improvements.tex. Each concept prereqs >=1 paper-graph node (the thing extended) plus foundation nodes. paper:<NN> refers to a node in ../paper/manifest.json.",
+  "concepts": [
+    {
+      "id": "01", "slug": "control-variate-drift-correction", "title": "Control-Variate Drift Correction", "level": "extension",
+      "prereqs": ["paper:08", "paper:06", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/control-variates.md"],
+      "summary": "SCAFFOLD-style local step g_local - c_k + c cancels the eta^2 Cov_k(H_k,g_k) drift; prototype: 1.62x fewer non-IID rounds. Validation: proofs/heterogeneity-control-variate.tex.",
+      "validation": "proofs/heterogeneity-control-variate.tex"
+    },
+    {
+      "id": "02", "slug": "unbiased-aggregation-estimators", "title": "Unbiased Aggregation Estimators", "level": "extension",
+      "prereqs": ["paper:10", "paper:09", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/horvitz-thompson-estimator.md"],
+      "summary": "Horvitz-Thompson / size-proportional sampling restore exact unbiasedness lost by the self-normalized n_k/m_t average under imbalance. Validation: proofs/unbiased-aggregation.tex.",
+      "validation": "proofs/unbiased-aggregation.tex"
+    },
+    {
+      "id": "03", "slug": "adaptive-local-work-schedule", "title": "Adaptive Local-Work Schedule", "level": "extension",
+      "prereqs": ["paper:07", "paper:08"],
+      "summary": "Decay E (or grow B) over rounds like a learning rate to dodge the large-E plateau; prototype beats every fixed E. Validation: improvements/adaptive-local-work.py measure().",
+      "validation": "improvements/adaptive-local-work.py::measure"
+    },
+    {
+      "id": "04", "slug": "compute-accounting-pareto", "title": "Compute-Accounting Pareto (design)", "level": "extension",
+      "prereqs": ["paper:07"],
+      "summary": "Measure the unquantified 'computation is free' premise: report a rounds-vs-total-on-device-compute Pareto frontier. Design proposal (E.2); link-only.",
+      "validation": "link-only"
+    },
+    {
+      "id": "05", "slug": "permutation-aligned-averaging", "title": "Permutation-Aligned Averaging (Git Re-Basin for FL)", "level": "extension",
+      "prereqs": ["paper:12", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/permutation-group.md", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/linear-assignment-problem.md"],
+      "summary": "Align client models modulo permutation before averaging to relax the shared-init requirement; prototype flips barrier +0.024 -> -0.023. Validation: proofs/permutation-aligned-averaging.tex.",
+      "validation": "proofs/permutation-aligned-averaging.tex"
+    },
+    {
+      "id": "06", "slug": "federated-lora-communication", "title": "Federated LoRA (design)", "level": "extension",
+      "prereqs": ["paper:04", "paper:06", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/low-rank-factorization.md"],
+      "summary": "Run FedAvg over LoRA adapters only: per-round communication drops from Theta(B) to Theta(rank*dim) (4.3% in the sandbox). Design proposal (T.2); link-only.",
+      "validation": "link-only"
+    }
+  ],
+  "edges_note": "paper:<NN> = cross-graph edge into ../paper/manifest.json; URL prereqs point into the foundations repo. Topological order 01..06."
+}

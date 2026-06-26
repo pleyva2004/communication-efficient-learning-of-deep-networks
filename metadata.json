@@ -1,0 +1,37 @@
+{
+  "slug": "communication-efficient-learning-of-deep-networks",
+  "title": "Communication-Efficient Learning of Deep Networks from Decentralized Data",
+  "authors": [
+    "H. Brendan McMahan",
+    "Eider Moore",
+    "Daniel Ramage",
+    "Seth Hampson",
+    "Blaise Agüera y Arcas"
+  ],
+  "arxiv_id": "1602.05629",
+  "arxiv_version": "v4 (26 Jan 2023)",
+  "venue": "AISTATS 2017 (JMLR W&CP vol. 54)",
+  "source_url": "https://arxiv.org/abs/1602.05629",
+  "pdf_path": "~/ai-research-studies/communication-efficient-learning-of-deep-networks/source.pdf",
+  "started": "2026-06-25",
+  "stages_completed": ["0-ingest", "1-interview-prep", "2-math-deep-dive", "3-opinions-template", "4-sandbox", "5-literature-review", "6-improvements", "7-learning-map"],
+  "github_url": "https://github.com/pleyva2004/communication-efficient-learning-of-deep-networks",
+  "hardware_tier": "tier_mid_gpu",
+  "hardware_tier_description": "Apple Silicon, 36.0 GB unified",
+  "hardware_recommendations": {
+    "max_model_params": 50000000,
+    "max_lora_base_params": 3000000000,
+    "training_budget_minutes": 240,
+    "recommended_frameworks": ["torch (MPS/CUDA)", "MLX (Apple)", "numpy fallback"],
+    "guidance": "GPTs up to ~50M params from scratch (TinyStories class). LoRA on 1.5B-3B base models. Training up to ~4 hours."
+  },
+  "environment_notes": {
+    "network": "arxiv.org allowlisted; raw curl to pypi.org/ghcr.io/github.com returns 000, BUT Homebrew bottles and `uv` reach their package endpoints fine; huggingface.co model downloads assumed blocked",
+    "tooling_installed_this_session": ["Homebrew uv 0.11.24", "Homebrew pyenv 2.7.3"],
+    "venv": ".venv (python 3.9.6) with numpy 2.0.2, torch 2.8.0 (MPS available+built), transformers 4.57.6, peft 0.17.1, accelerate 1.10.1",
+    "venv_python": "~/ai-research-studies/communication-efficient-learning-of-deep-networks/.venv/bin/python",
+    "missing_tools": ["pdftotext", "pdflatex", "gh"],
+    "pdf_text_extraction": "macOS Swift + PDFKit (/tmp/pdfextract.swift) -> paper.txt",
+    "notation_glossary": "unreachable (github blocked); notation key built from paper, all symbols flagged for upstream sync"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "version": "0.1",
+  "graph": "paper",
+  "description": "Paper-graph concept manifest for FedAvg (McMahan et al. 2017), derived from 02-math-deep-dive.md. Foundation prereqs are stable URLs into pleyva2004/math-foundations (unverified offline; a 404 means the foundation concept is not yet authored).",
+  "concepts": [
+    {
+      "id": "01", "slug": "finite-sum-objective", "title": "Finite-Sum Objective", "level": "paper",
+      "prereqs": [
+        "https://github.com/pleyva2004/math-foundations/blob/main/concepts/expectation.md",
+        "https://github.com/pleyva2004/math-foundations/blob/main/concepts/empirical-risk.md"
+      ],
+      "summary": "The global objective f(w)=(1/n) sum_i f_i(w): an unweighted average of per-example losses, the target FedAvg minimizes."
+    },
+    {
+      "id": "02", "slug": "client-partition-decomposition", "title": "Client-Partition Decomposition", "level": "paper",
+      "prereqs": ["01", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/partition-of-a-set.md"],
+      "summary": "f(w)=sum_k (n_k/n) F_k(w): an exact algebraic identity rewriting the objective as a data-size-weighted convex combination of per-client losses."
+    },
+    {
+      "id": "03", "slug": "iid-noniid-dichotomy", "title": "IID vs Non-IID", "level": "paper",
+      "prereqs": ["02", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/unbiased-estimator.md"],
+      "summary": "IID means E_{P_k}[F_k(w)]=f(w) (each client's loss is an unbiased proxy for the global); non-IID is the failure of this identity."
+    },
+    {
+      "id": "04", "slug": "fedsgd-gradient-descent", "title": "FedSGD as Exact Gradient Descent", "level": "paper",
+      "prereqs": ["02", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/gradient.md", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/gradient-descent.md"],
+      "summary": "sum_k (n_k/n) g_k = grad f(w_t), so FedSGD (B=inf,E=1,C=1) is exactly distributed full-batch gradient descent."
+    },
+    {
+      "id": "05", "slug": "gradient-model-averaging-equivalence", "title": "Gradient- vs Model-Averaging Equivalence", "level": "paper",
+      "prereqs": ["04"],
+      "summary": "Averaging one local gradient step equals one global step because sum_k n_k/n = 1; the hinge that lets FedSGD be reorganized as model averaging."
+    },
+    {
+      "id": "06", "slug": "fedavg-local-iteration", "title": "FedAvg: Iterated Local Steps", "level": "paper",
+      "prereqs": ["05"],
+      "summary": "FedAvg iterates the local SGD step tau>1 times before averaging; for tau>=2 the round map is no longer any number of centralized GD steps."
+    },
+    {
+      "id": "07", "slug": "local-update-count", "title": "Local-Update Count u=nE/(KB)", "level": "paper",
+      "prereqs": ["06"],
+      "summary": "u_k=E n_k/B local updates per client; expected u=nE/(KB). The (C,E,B) knob that trades on-device compute for communication rounds."
+    },
+    {
+      "id": "08", "slug": "heterogeneity-gap-covariance", "title": "Heterogeneity Gap = eta^2 Cov_k(H_k,g_k)", "level": "paper",
+      "prereqs": ["06", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/taylor-theorem.md", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/hessian.md", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/covariance.md"],
+      "summary": "For E>1 the per-round deviation from centralized GD is, to leading order, eta^2 Cov_k(H_k,g_k): a pure client-heterogeneity term (zero when IID)."
+    },
+    {
+      "id": "09", "slug": "client-sampling-unbiasedness", "title": "Client-Sampling Unbiasedness (Horvitz-Thompson)", "level": "paper",
+      "prereqs": ["03", "04", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/unbiased-estimator.md"],
+      "summary": "Under uniform client sampling, inverse-probability (Horvitz-Thompson) weighting makes the partial-participation gradient an unbiased estimator of grad f."
+    },
+    {
+      "id": "10", "slug": "aggregation-erratum", "title": "Aggregation Erratum: normalize by m_t", "level": "paper",
+      "prereqs": ["09"],
+      "summary": "The corrected average w_{t+1}=sum_{k in S} (n_k/m_t) w^k (m_t over selected clients); summing n_k/n instead shrinks the model by the factor C each round."
+    },
+    {
+      "id": "11", "slug": "parameter-averaging-jensen", "title": "Parameter Averaging & Jensen", "level": "paper",
+      "prereqs": ["02", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/convex-function.md", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/jensens-inequality.md"],
+      "summary": "For convex F_k, Jensen gives f(avg) <= avg f, so averaging is safe; non-convex nets have no such guarantee."
+    },
+    {
+      "id": "12", "slug": "shared-init-permutation-barrier", "title": "Shared-Init & the Permutation Barrier", "level": "paper",
+      "prereqs": ["11", "https://github.com/pleyva2004/math-foundations/blob/main/concepts/permutation-group.md"],
+      "summary": "Independently-initialized nets land in incompatible permutation-orbit basins (Fig 1 barrier); FedAvg broadcasts a shared w_t each round to keep clients in one basin."
+    }
+  ],
+  "edges_note": "Local prereqs are <NN> ids within this manifest; URL prereqs point into the foundations repo. Topological order is 01..12."
+}

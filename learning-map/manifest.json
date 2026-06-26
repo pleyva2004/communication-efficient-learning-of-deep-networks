@@ -1,0 +1,310 @@
+{
+  "version": "0.1",
+  "description": "Union manifest: foundations (URL-linked), paper, and improvements graphs.",
+  "nodes": [
+    {
+      "id": "F01",
+      "graph": "foundations",
+      "title": "expectation",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/expectation.md"
+    },
+    {
+      "id": "F02",
+      "graph": "foundations",
+      "title": "empirical risk",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/empirical-risk.md"
+    },
+    {
+      "id": "F03",
+      "graph": "foundations",
+      "title": "partition of a set",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/partition-of-a-set.md"
+    },
+    {
+      "id": "F04",
+      "graph": "foundations",
+      "title": "unbiased estimator",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/unbiased-estimator.md"
+    },
+    {
+      "id": "F05",
+      "graph": "foundations",
+      "title": "gradient",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/gradient.md"
+    },
+    {
+      "id": "F06",
+      "graph": "foundations",
+      "title": "gradient descent",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/gradient-descent.md"
+    },
+    {
+      "id": "F07",
+      "graph": "foundations",
+      "title": "taylor theorem",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/taylor-theorem.md"
+    },
+    {
+      "id": "F08",
+      "graph": "foundations",
+      "title": "hessian",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/hessian.md"
+    },
+    {
+      "id": "F09",
+      "graph": "foundations",
+      "title": "covariance",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/covariance.md"
+    },
+    {
+      "id": "F10",
+      "graph": "foundations",
+      "title": "convex function",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/convex-function.md"
+    },
+    {
+      "id": "F11",
+      "graph": "foundations",
+      "title": "jensens inequality",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/jensens-inequality.md"
+    },
+    {
+      "id": "F12",
+      "graph": "foundations",
+      "title": "permutation group",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/permutation-group.md"
+    },
+    {
+      "id": "F13",
+      "graph": "foundations",
+      "title": "control variates",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/control-variates.md"
+    },
+    {
+      "id": "F14",
+      "graph": "foundations",
+      "title": "horvitz thompson estimator",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/horvitz-thompson-estimator.md"
+    },
+    {
+      "id": "F15",
+      "graph": "foundations",
+      "title": "linear assignment problem",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/linear-assignment-problem.md"
+    },
+    {
+      "id": "F16",
+      "graph": "foundations",
+      "title": "low rank factorization",
+      "url": "https://github.com/pleyva2004/math-foundations/blob/main/concepts/low-rank-factorization.md"
+    },
+    {
+      "id": "P01",
+      "graph": "paper",
+      "slug": "finite-sum-objective",
+      "title": "Finite-Sum Objective",
+      "prereqs": [
+        "F01",
+        "F02"
+      ],
+      "summary": "The global objective f(w)=(1/n) sum_i f_i(w): an unweighted average of per-example losses, the target FedAvg minimizes."
+    },
+    {
+      "id": "P02",
+      "graph": "paper",
+      "slug": "client-partition-decomposition",
+      "title": "Client-Partition Decomposition",
+      "prereqs": [
+        "P01",
+        "F03"
+      ],
+      "summary": "f(w)=sum_k (n_k/n) F_k(w): an exact algebraic identity rewriting the objective as a data-size-weighted convex combination of per-client losses."
+    },
+    {
+      "id": "P03",
+      "graph": "paper",
+      "slug": "iid-noniid-dichotomy",
+      "title": "IID vs Non-IID",
+      "prereqs": [
+        "P02",
+        "F04"
+      ],
+      "summary": "IID means E_{P_k}[F_k(w)]=f(w) (each client's loss is an unbiased proxy for the global); non-IID is the failure of this identity."
+    },
+    {
+      "id": "P04",
+      "graph": "paper",
+      "slug": "fedsgd-gradient-descent",
+      "title": "FedSGD as Exact Gradient Descent",
+      "prereqs": [
+        "P02",
+        "F05",
+        "F06"
+      ],
+      "summary": "sum_k (n_k/n) g_k = grad f(w_t), so FedSGD (B=inf,E=1,C=1) is exactly distributed full-batch gradient descent."
+    },
+    {
+      "id": "P05",
+      "graph": "paper",
+      "slug": "gradient-model-averaging-equivalence",
+      "title": "Gradient- vs Model-Averaging Equivalence",
+      "prereqs": [
+        "P04"
+      ],
+      "summary": "Averaging one local gradient step equals one global step because sum_k n_k/n = 1; the hinge that lets FedSGD be reorganized as model averaging."
+    },
+    {
+      "id": "P06",
+      "graph": "paper",
+      "slug": "fedavg-local-iteration",
+      "title": "FedAvg: Iterated Local Steps",
+      "prereqs": [
+        "P05"
+      ],
+      "summary": "FedAvg iterates the local SGD step tau>1 times before averaging; for tau>=2 the round map is no longer any number of centralized GD steps."
+    },
+    {
+      "id": "P07",
+      "graph": "paper",
+      "slug": "local-update-count",
+      "title": "Local-Update Count u=nE/(KB)",
+      "prereqs": [
+        "P06"
+      ],
+      "summary": "u_k=E n_k/B local updates per client; expected u=nE/(KB). The (C,E,B) knob that trades on-device compute for communication rounds."
+    },
+    {
+      "id": "P08",
+      "graph": "paper",
+      "slug": "heterogeneity-gap-covariance",
+      "title": "Heterogeneity Gap = eta^2 Cov_k(H_k,g_k)",
+      "prereqs": [
+        "P06",
+        "F07",
+        "F08",
+        "F09"
+      ],
+      "summary": "For E>1 the per-round deviation from centralized GD is, to leading order, eta^2 Cov_k(H_k,g_k): a pure client-heterogeneity term (zero when IID)."
+    },
+    {
+      "id": "P09",
+      "graph": "paper",
+      "slug": "client-sampling-unbiasedness",
+      "title": "Client-Sampling Unbiasedness (Horvitz-Thompson)",
+      "prereqs": [
+        "P03",
+        "P04",
+        "F04"
+      ],
+      "summary": "Under uniform client sampling, inverse-probability (Horvitz-Thompson) weighting makes the partial-participation gradient an unbiased estimator of grad f."
+    },
+    {
+      "id": "P10",
+      "graph": "paper",
+      "slug": "aggregation-erratum",
+      "title": "Aggregation Erratum: normalize by m_t",
+      "prereqs": [
+        "P09"
+      ],
+      "summary": "The corrected average w_{t+1}=sum_{k in S} (n_k/m_t) w^k (m_t over selected clients); summing n_k/n instead shrinks the model by the factor C each round."
+    },
+    {
+      "id": "P11",
+      "graph": "paper",
+      "slug": "parameter-averaging-jensen",
+      "title": "Parameter Averaging & Jensen",
+      "prereqs": [
+        "P02",
+        "F10",
+        "F11"
+      ],
+      "summary": "For convex F_k, Jensen gives f(avg) <= avg f, so averaging is safe; non-convex nets have no such guarantee."
+    },
+    {
+      "id": "P12",
+      "graph": "paper",
+      "slug": "shared-init-permutation-barrier",
+      "title": "Shared-Init & the Permutation Barrier",
+      "prereqs": [
+        "P11",
+        "F12"
+      ],
+      "summary": "Independently-initialized nets land in incompatible permutation-orbit basins (Fig 1 barrier); FedAvg broadcasts a shared w_t each round to keep clients in one basin."
+    },
+    {
+      "id": "I01",
+      "graph": "improvements",
+      "slug": "control-variate-drift-correction",
+      "title": "Control-Variate Drift Correction",
+      "prereqs": [
+        "P08",
+        "P06",
+        "F13"
+      ],
+      "summary": "SCAFFOLD-style local step g_local - c_k + c cancels the eta^2 Cov_k(H_k,g_k) drift; prototype: 1.62x fewer non-IID rounds. Validation: proofs/heterogeneity-control-variate.tex.",
+      "validation": "proofs/heterogeneity-control-variate.tex"
+    },
+    {
+      "id": "I02",
+      "graph": "improvements",
+      "slug": "unbiased-aggregation-estimators",
+      "title": "Unbiased Aggregation Estimators",
+      "prereqs": [
+        "P10",
+        "P09",
+        "F14"
+      ],
+      "summary": "Horvitz-Thompson / size-proportional sampling restore exact unbiasedness lost by the self-normalized n_k/m_t average under imbalance. Validation: proofs/unbiased-aggregation.tex.",
+      "validation": "proofs/unbiased-aggregation.tex"
+    },
+    {
+      "id": "I03",
+      "graph": "improvements",
+      "slug": "adaptive-local-work-schedule",
+      "title": "Adaptive Local-Work Schedule",
+      "prereqs": [
+        "P07",
+        "P08"
+      ],
+      "summary": "Decay E (or grow B) over rounds like a learning rate to dodge the large-E plateau; prototype beats every fixed E. Validation: improvements/adaptive-local-work.py measure().",
+      "validation": "improvements/adaptive-local-work.py::measure"
+    },
+    {
+      "id": "I04",
+      "graph": "improvements",
+      "slug": "compute-accounting-pareto",
+      "title": "Compute-Accounting Pareto (design)",
+      "prereqs": [
+        "P07"
+      ],
+      "summary": "Measure the unquantified 'computation is free' premise: report a rounds-vs-total-on-device-compute Pareto frontier. Design proposal (E.2); link-only.",
+      "validation": "link-only"
+    },
+    {
+      "id": "I05",
+      "graph": "improvements",
+      "slug": "permutation-aligned-averaging",
+      "title": "Permutation-Aligned Averaging (Git Re-Basin for FL)",
+      "prereqs": [
+        "P12",
+        "F12",
+        "F15"
+      ],
+      "summary": "Align client models modulo permutation before averaging to relax the shared-init requirement; prototype flips barrier +0.024 -> -0.023. Validation: proofs/permutation-aligned-averaging.tex.",
+      "validation": "proofs/permutation-aligned-averaging.tex"
+    },
+    {
+      "id": "I06",
+      "graph": "improvements",
+      "slug": "federated-lora-communication",
+      "title": "Federated LoRA (design)",
+      "prereqs": [
+        "P04",
+        "P06",
+        "F16"
+      ],
+      "summary": "Run FedAvg over LoRA adapters only: per-round communication drops from Theta(B) to Theta(rank*dim) (4.3% in the sandbox). Design proposal (T.2); link-only.",
+      "validation": "link-only"
+    }
+  ]
+}

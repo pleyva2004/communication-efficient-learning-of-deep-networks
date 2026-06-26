@@ -1,0 +1,70 @@
+{
+  "w": {
+    "read_as": "w",
+    "meaning": "model parameter vector in R^d"
+  },
+  "f": {
+    "read_as": "f of w",
+    "meaning": "global objective: mean loss over all n examples"
+  },
+  "f_i": {
+    "read_as": "f sub i",
+    "meaning": "per-example loss l(x_i,y_i;w)"
+  },
+  "F_k": {
+    "read_as": "cap F sub k",
+    "meaning": "client k's local objective (mean loss on P_k)"
+  },
+  "n": {
+    "read_as": "n",
+    "meaning": "total number of training examples"
+  },
+  "n_k": {
+    "read_as": "n sub k",
+    "meaning": "number of examples on client k"
+  },
+  "K": {
+    "read_as": "K",
+    "meaning": "total number of clients"
+  },
+  "P_k": {
+    "read_as": "P sub k",
+    "meaning": "index set of examples held by client k"
+  },
+  "g_k": {
+    "read_as": "g sub k",
+    "meaning": "client k's local average gradient at w_t"
+  },
+  "C": {
+    "read_as": "C",
+    "meaning": "fraction of clients selected per round"
+  },
+  "E": {
+    "read_as": "E",
+    "meaning": "local epochs per client per round"
+  },
+  "B": {
+    "read_as": "B",
+    "meaning": "local minibatch size (inf = full batch)"
+  },
+  "S_t": {
+    "read_as": "S sub t",
+    "meaning": "clients selected in round t"
+  },
+  "m_t": {
+    "read_as": "m sub t",
+    "meaning": "total examples on selected clients"
+  },
+  "u": {
+    "read_as": "u",
+    "meaning": "local updates per round, u=nE/(KB)"
+  },
+  "eta": {
+    "read_as": "eta",
+    "meaning": "learning rate"
+  },
+  "H_k": {
+    "read_as": "H sub k",
+    "meaning": "client k's local Hessian at w_t"
+  }
+}

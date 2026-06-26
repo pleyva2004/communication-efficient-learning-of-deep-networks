@@ -1,0 +1,3 @@
+# Improvement-prototype dependencies. Pure numpy, CPU, <1 min each.
+# Run with the study's .venv (already has these), or any numpy environment.
+numpy==2.0.2

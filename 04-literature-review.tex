@@ -1,0 +1,107 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black
+}
+
+\title{Communication-Efficient Learning of Deep Networks from Decentralized Data:\\ A Literature-Review Entry}
+\author{Literature review entry}
+\date{Studied: 2026-06-25 \\ \texttt{arXiv:1602.05629}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\citet{mcmahan2017fedavg} introduce \emph{Federated Learning} and the \textsc{FederatedAveraging} (FedAvg) algorithm: a shared model is trained from data that never leaves client devices by having each client run several epochs of local stochastic gradient descent and a coordinating server average the resulting \emph{models}. The paper's stated contribution is not a new optimizer---iterative model averaging predates it \citep{mcdonald2010distributed,povey2015parallel,zhang2015elastic}---but the identification and formalization of \emph{federated optimization}, a regime defined by non-IID, unbalanced, massively distributed, and communication-limited data that violates every standing assumption of the convex distributed-optimization literature. Across five architectures and four datasets, FedAvg reduces the communication rounds required to reach a target accuracy by $10$--$100\times$ relative to synchronized SGD, establishing the empirical viability of on-device collaborative training and seeding the secure-aggregation and differential-privacy lines that followed.
+\end{abstract}
+
+\section*{Notation}
+
+The full notation reference is the
+\href{https://github.com/pleyva2004/math-foundations/blob/main/notation.pdf}{math-foundations glossary}.
+The symbols this paper introduces or specialises are below (the glossary was network-unreachable at study time, so each row is flagged for upstream propagation):
+
+\begin{tabular}{lll}
+\toprule
+Symbol & Read aloud as & Meaning \\
+\midrule
+$w \in \mathbb{R}^d$ & ``w in R-d'' & Model parameter vector \\ % TODO add to foundations
+$f(w)$ & ``f of w'' & Global objective: mean loss over all $n$ examples \\ % TODO add to foundations
+$f_i(w)=\ell(x_i,y_i;w)$ & ``f-sub-i'' & Per-example loss on $(x_i,y_i)$ \\ % TODO add to foundations
+$K$ & ``K'' & Total number of clients \\ % TODO add to foundations
+$P_k,\ n_k=|P_k|$ & ``P-sub-k'' & Index set / example count on client $k$ \\ % TODO add to foundations
+$F_k(w)$ & ``cap-F-sub-k'' & Client $k$'s local objective (mean loss on $P_k$) \\ % TODO add to foundations
+$g_k=\nabla F_k(w_t)$ & ``g-sub-k'' & Client $k$'s local average gradient at $w_t$ \\ % TODO add to foundations
+$C,\ E,\ B$ & ``C, E, B'' & Client fraction / local epochs / local minibatch size \\ % TODO add to foundations
+$S_t,\ m_t=\sum_{k\in S_t} n_k$ & ``S-sub-t'' & Selected clients in round $t$ / their total examples \\ % TODO add to foundations
+$u_k=En_k/B$ & ``u-sub-k'' & Local SGD updates client $k$ performs per round \\ % TODO add to foundations
+\bottomrule
+\end{tabular}
+
+\section{Background and Motivation}
+
+Mobile devices collectively hold large quantities of privacy-sensitive data---typed text, photographs, sensor traces---that could train high-quality models but cannot responsibly be centralized. \citet{mcmahan2017fedavg} frame the resulting learning problem as \emph{federated optimization} and distinguish it from data-center distributed optimization by four properties: the data is \emph{non-IID} (a client's examples reflect one user and need not resemble the population), \emph{unbalanced} (clients hold very different amounts of data), \emph{massively distributed} (clients far outnumber the examples per client), and subject to \emph{limited communication} (devices are intermittently available on slow links). Prior communication-efficient distributed optimization \citep{zhang2012communication,zinkevich2010parallelized} assumes the negation of these: many examples per node, IID partitions, and equal shard sizes. The economic premise of the paper is an inversion of the data-center cost model: communication, not computation, dominates, so the goal becomes to \emph{spend additional on-device computation to reduce the number of communication rounds}. Earlier iterative-averaging methods \citep{mcdonald2010distributed,povey2015parallel,zhang2015elastic} had been studied only in the cluster setting ($\leq 16$ workers, IID), and asynchronous approaches \citep{dean2012large} require prohibitively many updates in the federated regime; FedAvg adapts the averaging idea to the federated setting and supplies the appropriate evaluation methodology.
+
+\section{Technical Approach}
+\label{sec:method}
+
+FedAvg targets any finite-sum objective. With $n$ examples partitioned across $K$ clients, client $k$ holding index set $P_k$ with $n_k=|P_k|$, the global objective decomposes exactly into a data-size-weighted average of per-client objectives.
+
+\paragraph{Definitions.}
+The per-example loss is $f_i(w)=\ell(x_i,y_i;w)$ and the per-client objective is $F_k(w)=\frac{1}{n_k}\sum_{i\in P_k} f_i(w)$. Because $\{P_k\}$ partitions the data, $\sum_k n_k = n$, so the weights $n_k/n$ form a probability vector. The setting is IID when a uniformly random partition gives $\mathbb{E}_{P_k}[F_k(w)] = f(w)$; the non-IID setting is defined by the failure of this identity ($F_k$ may be an arbitrarily bad approximation to $f$).
+
+\paragraph{Central object.}
+The central quantity studied is the finite-sum objective written in client-decomposed form,
+\begin{equation}
+\min_{w\in\mathbb{R}^d} f(w),
+\qquad
+f(w) = \frac{1}{n}\sum_{i=1}^{n} f_i(w) = \sum_{k=1}^{K} \frac{n_k}{n}\, F_k(w),
+\label{eq:central}
+\end{equation}
+where the second equality is an exact algebraic identity, valid for \emph{any} partition (it never invokes the IID assumption).
+
+\paragraph{Method.}
+Differentiating \eqref{eq:central} gives the gradient-aggregation identity $\sum_k \frac{n_k}{n}\, g_k = \nabla f(w_t)$ with $g_k=\nabla F_k(w_t)$. The baseline \textsc{FedSGD} ($B=\infty$, $E=1$) therefore performs, with full client participation ($C=1$), exact distributed full-batch gradient descent,
+\begin{equation}
+w_{t+1} \leftarrow w_t - \eta \sum_{k=1}^{K} \frac{n_k}{n}\, g_k = w_t - \eta\,\nabla f(w_t).
+\label{eq:fedsgd}
+\end{equation}
+A one-line algebraic fact---that averaging a single local gradient step over clients equals one global gradient step, because $\sum_k n_k/n = 1$---lets the computation be reorganized into \emph{model averaging}: clients step locally, the server averages models. FedAvg generalizes this by iterating the local update for $u_k = E n_k / B$ steps before averaging; the control parameters are $C$ (client fraction), $E$ (local epochs), and $B$ (local minibatch size). Once more than one local step is taken the model-average is no longer a gradient step on $f$, and that gap---to leading order the client-weighted covariance $\eta^2\,\mathrm{Cov}_k(H_k, g_k)$ between local Hessians and gradients, a pure \emph{heterogeneity} term---is exactly the extra progress FedAvg buys per round. The server aggregation, corrected by an erratum in the published version, averages over the selected set $S_t$ with the participating mass $m_t=\sum_{k\in S_t} n_k$,
+\begin{equation}
+w_{t+1} \leftarrow \sum_{k\in S_t} \frac{n_k}{m_t}\, w^{k}_{t+1},
+\label{eq:agg}
+\end{equation}
+which is a genuine convex combination for every realization; normalizing by $n$ instead of $m_t$ (the original error) shrinks the aggregate by the participation fraction $C$ each round. Because parameter-space averaging of non-convex networks can in general produce an arbitrarily bad model, the method relies on a shared per-round initialization: \citet{mcmahan2017fedavg} show empirically (their Figure~1) that averaging two networks trained from \emph{independent} initializations crosses a loss barrier, whereas averaging from a \emph{shared} initialization yields a model better than either parent. Broadcasting the same $w_t$ to all clients each round engineers the favorable regime.
+
+\section{Key Results}
+
+The evaluation spans the MNIST 2NN ($199{,}210$ parameters) and CNN ($1{,}663{,}370$), a character-level Shakespeare LSTM ($866{,}578$), a CIFAR-10 CNN ($\sim\!10^6$), and a $4{,}950{,}544$-parameter word-level LSTM trained on over $500{,}000$ clients. Holding the client fraction at $C=0.1$ and increasing the per-round local computation (larger $E$, smaller $B$, hence larger $u=nE/(KB)$) reduces the rounds to a target accuracy by up to $35\times$ for the MNIST CNN and $46\times$ for the 2NN under IID partitions. Under the deliberately \emph{pathological} non-IID partition---data sorted by label into $200$ shards of $300$, two shards per client, so most clients see only two digits---the speedups shrink to $2.8$--$3.7\times$ but remain positive, which the authors read as evidence of robustness. The largest reported gain, $95\times$, occurs on the \emph{unbalanced} non-IID Shakespeare task, which the authors note is actually \emph{easier} because some roles carry large local datasets. On CIFAR-10, FedAvg reaches $85\%$ accuracy in $2{,}000$ rounds versus centralized SGD's $197{,}500$ minibatch updates, and on the large-scale next-word task FedAvg reaches the target in $35$ rounds versus FedSGD's $820$ ($23\times$). The authors further conjecture a regularization benefit akin to dropout \citep{srivastava2014dropout}, and observe that for very large $E$ the method can plateau or diverge, motivating a learning-rate-style decay of local computation.
+
+\section{Position in the Literature}
+
+The algorithmic lineage of FedAvg is explicitly prior art: iterative model averaging was studied for the structured perceptron by \citet{mcdonald2010distributed}, for speech DNNs by \citet{povey2015parallel}, and asynchronously by \citet{zhang2015elastic}, all in the cluster regime. The aggressive endpoint of the FedAvg family---one-shot averaging---is known to be worst-case no better than single-client training in the convex IID case \citep{zhang2012communication,zinkevich2010parallelized}, which is precisely why iteration and a shared initialization matter. The justification that shared-initialization averaging behaves well leans on the over-parameterized loss-landscape results of \citet{goodfellow2015qualitatively}, \citet{dauphin2014identifying}, and \citet{choromanska2015loss}; the underlying obstruction it sidesteps---permutation symmetry rendering independently trained networks incompatible under averaging---is the same phenomenon later formalized by \citet{ainsworth2023gitrebasin}. The synchronous large-batch baseline (FedSGD) is taken from \citet{chen2016revisiting}. On the privacy axis, the paper offers a qualitative data-minimization argument rather than a guarantee, and forward-references the secure-aggregation protocol of \citet{bonawitz2017secure} and the differential-privacy machinery of \citet{abadi2016deep}; the communication-reduction techniques of \citet{konecny2016strategies} are its immediate companion. The heterogeneity gap that \eqref{eq:agg} and the covariance term expose is the object that subsequent federated-optimization theory was built to control---via a proximal term in FedProx \citep{li2020fedprox} and via control variates in SCAFFOLD \citep{karimireddy2020scaffold}.
+
+\section{Limitations and Open Questions}
+
+The paper proves nothing about FedAvg: there is no convergence theorem, no rate, and no condition guaranteeing non-divergence---the authors concede the method ``can plateau or diverge'' for large $E$, and that parameter averaging ``could produce an arbitrarily bad model.'' The equivalence to gradient descent holds only at the FedSGD endpoint ($E=1$); for $E>1$ no fixed point is characterized. The evaluation is structurally favorable to the proposed method: the learning rate is grid-searched per $x$-axis point over $11$--$13$ values (more than $2{,}000$ models trained), learning curves are monotonized, round counts are obtained by linear interpolation, and no variance or confidence intervals are reported. The FedSGD baseline---one full-batch gradient step per round---is the weakest possible per-round comparator, so a large per-round speedup is partly definitional. The non-IID robustness claim rests on a single artificial MNIST partition plus a proprietary, unverifiable social-media corpus, and several non-IID configurations are in fact \emph{slower} than FedSGD. The load-bearing premise that on-device ``computation is essentially free'' relative to communication is asserted rather than measured, despite up to $u_k=1200$ local updates per round. Finally, the published erratum---normalizing the aggregate by $m_t$ rather than $n$ in \eqref{eq:agg}---means the corrected estimator is only \emph{exactly} unbiased when clients are balanced; for unbalanced $n_k$ under partial participation it is a ratio estimator with $O(1/m)$ bias, a subtlety the paper does not analyze. The central open questions are therefore: what fixed point does FedAvg approach under non-IID data, is there a principled rule for choosing $(E,B)$, and what does it take to convert the qualitative privacy story into a formal guarantee.
+
+\section*{Sandbox Probe}
+
+A companion sandbox reproduces the two load-bearing claims at toy scale. A pure-\textsc{numpy} federated softmax-regression demo (\texttt{toy\_fedavg.py}) recovers the qualitative shape of the paper's Table~2: with $K=100$, $C=0.1$, the best FedAvg configuration ($E=20,B=10$) reaches the target accuracy in $2$ communication rounds versus FedSGD's $62$ ($31\times$), with strictly smaller speedups under the pathological non-IID partition. A second numpy demo (\texttt{tiny\_fedavg\_averaging.py}) reproduces the Figure~1 phenomenon on a one-hidden-layer MLP: averaging from independent initializations yields a positive loss barrier ($+0.024$), while shared-initialization averaging yields a model below both parents ($-0.027$). A PyTorch script reproduces the result on the paper's exact MNIST CNN ($1{,}663{,}370$ parameters) on Apple-Silicon MPS, and a \textsc{peft}-based script applies FedAvg to LoRA adapters, communicating only $4.3\%$ of parameters per round---a forward-looking instance of the same algorithm.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

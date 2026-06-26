@@ -1,0 +1,71 @@
+\iffalse
+One-page printable interview handout for
+"Communication-Efficient Learning of Deep Networks from Decentralized Data"
+arXiv:1602.05629  (McMahan et al., AISTATS 2017 -- FedAvg)
+Conforms to write-latex rules: no fontspec, \section* unnumbered, pdflatex-clean,
+comments only inside \iffalse...\fi. NO \citep -- this file loads no natbib; all
+references are inline plaintext.
+\fi
+
+\documentclass[10pt]{article}
+
+\usepackage[letterpaper, margin=0.6in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{titlesec}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black
+}
+
+\titleformat{\section}{\large\bfseries}{}{0pt}{}
+\titlespacing*{\section}{0pt}{6pt}{2pt}
+
+\setlist[itemize]{leftmargin=*, topsep=1pt, itemsep=1pt}
+
+\pagenumbering{gobble}
+
+\begin{document}
+
+\begin{center}
+  {\Large\textbf{McMahan et al.\ 2017 --- Communication-Efficient Learning from Decentralized Data (FedAvg)}}\\[2pt]
+  {\small Federated Learning \& the FederatedAveraging algorithm \quad\textbar\quad arXiv:1602.05629 \quad\textbar\quad \href{https://github.com/pleyva2004/communication-efficient-learning-of-deep-networks}{my study repo}}
+\end{center}
+
+\section*{One-Liner}
+Train a shared model on data that never leaves the device: each client runs several epochs of local SGD, the server averages the resulting \emph{models}; this cuts communication rounds $10$--$100\times$ versus synchronized SGD.
+
+\section*{What's Novel}
+\begin{itemize}
+  \item The \emph{problem} and its framing --- ``federated optimization'' defined by four properties (non-IID, unbalanced, massively distributed, limited communication) --- not the averaging algorithm, which predates the paper (McDonald et al.\ 2010; Povey et al.\ 2015).
+  \item One dominant knob: spend ``essentially free'' on-device computation ($E$ local epochs, minibatch $B$) to buy the scarce resource, communication rounds. Speedups come mostly from more local work, not more clients.
+  \item An evaluation methodology for the regime that violates every assumption of convex distributed optimization ($K\!\ll\!n_k$, IID, equal $n_k$).
+\end{itemize}
+
+\section*{Math in 60 Seconds}
+The objective is a finite sum, decomposable exactly over clients (no IID needed):
+$$ f(w)=\tfrac{1}{n}\textstyle\sum_i f_i(w)=\sum_{k}\tfrac{n_k}{n}F_k(w). $$
+Differentiating gives $\sum_k \tfrac{n_k}{n}g_k=\nabla f(w_t)$, so \textbf{FedSGD} ($B{=}\infty,E{=}1,C{=}1$) is exactly full-batch GD. Because $\sum_k n_k/n=1$, averaging one local step equals one global step --- \textbf{FedAvg} just iterates the local step first. For $E>1$ the per-round gap from centralized GD is, to leading order, $\Delta=\eta^2\,\mathrm{Cov}_k(H_k,g_k)$: a pure client-\emph{heterogeneity} term (zero when IID). Non-convex averaging only works from a \emph{shared} init (Figure 1: independent inits cross a loss barrier); FedAvg re-broadcasts $w_t$ each round to guarantee it.
+
+\section*{What I'd Push Back On}
+\begin{itemize}
+  \item No theory at all --- no convergence result, no rate; the $E>1$ regime is uncharacterized and can ``plateau or diverge.'' The justification for averaging is one 1-D loss-interpolation plot.
+  \item Evaluation flatters the method: per-$x$-point learning-rate grid search ($>2000$ models), monotonized curves, interpolated round counts, no error bars; the FedSGD baseline (one full-batch step/round) is the weakest possible comparator.
+  \item ``Computation is free'' is asserted, never measured (up to $1200$ local updates/round on a phone); the headline $95\times$ is the \emph{unbalanced} Shakespeare case the authors admit is easier, and the erratum's $n_k/m_t$ average is only exactly unbiased when clients are balanced.
+\end{itemize}
+
+\section*{My One Proposed Extension}
+Cancel the heterogeneity drift directly. Since the $E>1$ ``free lunch'' is exactly the covariance $\eta^2\mathrm{Cov}_k(H_k,g_k)$, add SCAFFOLD-style control variates so each local step uses $g_{\mathrm{local}}-c_k+c$, re-centering clients onto the global direction at no extra backward pass (SCAFFOLD ``Option II''). My prototype recovers $1.62\times$ fewer rounds on the pathological non-IID partition --- operationalizing the paper's own weakest spot, and orthogonal to the aggregation-bias fix, the $E$-decay schedule, and permutation-aligned averaging.
+
+\emph{Full proposal set: \texttt{05-improvements.tex} in the study repo.}
+
+\section*{My One Question}
+\emph{For $E>1$ under genuine non-IID data, what fixed point (if any) does FedAvg converge to, and is there a principled rule for choosing $(E,B)$ --- given that Table 2 shows more local work sometimes makes things \emph{worse}?}
+
+\end{document}

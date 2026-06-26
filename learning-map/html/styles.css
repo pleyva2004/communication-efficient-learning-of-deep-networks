@@ -1,0 +1,12 @@
+.legend{font:13px sans-serif}
+body{margin:0;font-family:sans-serif;background:#fafafa}
+#h{padding:10px 16px;background:#fff;border-bottom:1px solid #ddd}
+#h h1{font-size:18px;margin:0 0 4px}
+#h p{margin:0;color:#666;font-size:13px}
+.node circle{cursor:pointer;stroke:#fff;stroke-width:1.5px}
+.node text{font:11px sans-serif;pointer-events:none}
+.link{stroke:#bbb;stroke-width:1.4px;marker-end:url(#arrow)}
+#panel{position:fixed;right:0;top:0;width:300px;height:100%;background:#fff;border-left:1px solid #ddd;padding:16px;overflow:auto;font-size:13px;display:none}
+#panel h2{font-size:15px;margin-top:0}
+#panel a{color:#3366cc}
+.swatch{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:middle}
